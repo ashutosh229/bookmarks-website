@@ -1,35 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,11 +11,40 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { BookmarkPlus, ExternalLink, Trash2, Edit2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/lib/supabase";
+import { Bookmark } from "@/lib/types";
+import { BookmarkPlus, Edit2, ExternalLink, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
-
-
 
 export default function Home() {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
@@ -56,6 +55,7 @@ export default function Home() {
     comment: "",
     status: "not_visited" as const,
   });
+
   const [editingBookmark, setEditingBookmark] = useState<Bookmark | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterKeyword, setFilterKeyword] = useState("");
@@ -136,12 +136,6 @@ export default function Home() {
       toast.error("Invalid bookmark data");
       return;
     }
-
-    // const keywords = editingBookmark.keywords
-    //   .join(",")
-    //   .split(",")
-    //   .map((k) => k.trim())
-    //   .filter((k) => k);
 
     const keywords = editingBookmark.keywords
       .map((k) => k.trim())

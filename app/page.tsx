@@ -45,14 +45,7 @@ import { BookmarkPlus, ExternalLink, Trash2, Edit2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
-type Bookmark = {
-  id: string;
-  url: string;
-  title: string;
-  status: "not_visited" | "visited" | "revisit";
-  keywords: string[];
-  comment: string;
-};
+
 
 export default function Home() {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);

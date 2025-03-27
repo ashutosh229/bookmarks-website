@@ -16,6 +16,14 @@ import {
   SelectItem,
   SelectTrigger,
 } from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { supabase } from "@/lib/supabase";
 import { ExamRecord } from "@/lib/types";
 import { useEffect, useState } from "react";
@@ -30,6 +38,7 @@ export default function ExamMarksTracker() {
     weightage: 0,
   });
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editRecord, setEditRecord] = useState<ExamRecord | null>(null);
 
   useEffect(() => {
     fetchRecords();
@@ -40,9 +49,23 @@ export default function ExamMarksTracker() {
     if (!error) setRecords(data || []);
   };
 
+  const deleteCourse = async (course: string) => {
+    await supabase.from("exam_records").delete().eq("course", course);
+    fetchRecords();
+  };
+
+  const updateRecord = async () => {
+    if (!editRecord) return;
+    await supabase
+      .from("exam_records")
+      .update(editRecord)
+      .eq("id", editRecord.id);
+    setEditRecord(null);
+    setIsDialogOpen(false);
+    fetchRecords();
+  };
+
   const addRecord = async () => {
-    //testing
-    console.log("Adding the record");
     const { error } = await supabase.from("exam_records").insert([newRecord]);
     if (!error) {
       setIsDialogOpen(false); // Close the dialog
@@ -51,13 +74,17 @@ export default function ExamMarksTracker() {
     }
   };
 
-  const calculateTotalPercentage = (course: string) => {
-    const courseRecords = records.filter((rec) => rec.course === course);
-    return courseRecords.reduce(
-      (total, rec) => total + rec.marks * (rec.weightage / 100),
-      0
-    );
+  const calculateTotalWeightedMarks = (course: string) => {
+    return records
+      .filter((rec) => rec.course === course)
+      .reduce((total, rec) => total + (rec.marks * rec.weightage) / 100, 0);
   };
+
+  const groupedRecords = records.reduce((acc, record) => {
+    if (!acc[record.course]) acc[record.course] = [];
+    acc[record.course].push(record);
+    return acc;
+  }, {} as Record<string, ExamRecord[]>);
 
   const filteredRecords = filter
     ? records.filter((rec) => rec.course === filter)
@@ -129,7 +156,7 @@ export default function ExamMarksTracker() {
       </Select>
 
       {/* Exam Records List */}
-      {filteredRecords.map((rec, index) => (
+      {/* {filteredRecords.map((rec, index) => (
         <Card key={rec.id || index}>
           <CardContent className="p-4 space-y-2">
             <p>
@@ -150,10 +177,10 @@ export default function ExamMarksTracker() {
             </p>
           </CardContent>
         </Card>
-      ))}
+      ))} */}
 
       {/* Total Percentage for Each Course */}
-      {Array.from(new Set(records.map((rec) => rec.course))).map((course) => (
+      {/* {Array.from(new Set(records.map((rec) => rec.course))).map((course) => (
         <Card key={course} className="mt-4">
           <CardHeader>
             <CardTitle>Total for {course}</CardTitle>
@@ -162,6 +189,42 @@ export default function ExamMarksTracker() {
             <p>
               <strong>Total Percentage:</strong>{" "}
               {calculateTotalPercentage(course).toFixed(2)}%
+            </p>
+          </CardContent>
+        </Card>
+      ))} */}
+
+      {Object.keys(groupedRecords).map((course) => (
+        <Card key={course} className="bg-gray-100 dark:bg-gray-800">
+          <CardHeader>
+            <CardTitle>{course}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Exam Type</TableHead>
+                  <TableHead>Marks</TableHead>
+                  <TableHead>Weightage (%)</TableHead>
+                  <TableHead>Weighted Marks</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {groupedRecords[course].map((rec) => (
+                  <TableRow key={rec.id}>
+                    <TableCell>{rec.examType}</TableCell>
+                    <TableCell>{rec.marks}</TableCell>
+                    <TableCell>{rec.weightage}%</TableCell>
+                    <TableCell>
+                      {((rec.marks * rec.weightage) / 100).toFixed(2)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            <p className="mt-4 font-bold text-lg">
+              Total Weighted Marks:{" "}
+              {calculateTotalWeightedMarks(course).toFixed(2)}
             </p>
           </CardContent>
         </Card>

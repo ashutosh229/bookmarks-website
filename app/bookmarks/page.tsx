@@ -168,12 +168,10 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 py-8">
       <div className="max-w-7xl mx-auto px-4">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Bookmark Manager
-          </h1>
+          <h1 className="text-4xl font-bold">Bookmark Manager</h1>
 
           {/* Add Bookmark Dialog */}
           <Dialog>
@@ -183,6 +181,7 @@ export default function Home() {
                 Add Bookmark
               </Button>
             </DialogTrigger>
+
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Add New Bookmark</DialogTitle>
@@ -277,14 +276,17 @@ export default function Home() {
         {/* Bookmarks List */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredBookmarks.map((bookmark) => (
-            <Card key={bookmark.id}>
+            <Card
+              key={bookmark.id}
+              className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-md dark:shadow-gray-700"
+            >
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <a
                     href={bookmark.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-600 hover:text-blue-800 flex items-center gap-2"
+                    className="text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-2"
                   >
                     {bookmark.title || bookmark.url}
                     <ExternalLink className="h-4 w-4" />
@@ -293,7 +295,11 @@ export default function Home() {
                 <CardDescription>
                   <div className="flex flex-wrap gap-2 mt-2">
                     {bookmark.keywords.map((keyword, idx) => (
-                      <Badge key={idx} variant="secondary">
+                      <Badge
+                        key={idx}
+                        variant="secondary"
+                        className="dark:bg-gray-700 dark:text-gray-200"
+                      >
                         {keyword}
                       </Badge>
                     ))}
@@ -305,7 +311,7 @@ export default function Home() {
                   {bookmark.status.replace("_", " ")}
                 </Badge>
                 {bookmark.comment && (
-                  <p className="mt-2 text-sm text-gray-600">
+                  <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
                     {bookmark.comment}
                   </p>
                 )}
@@ -317,6 +323,7 @@ export default function Home() {
                       onClick={() => setEditingBookmark(bookmark)}
                       variant="outline"
                       size="icon"
+                      className="dark:border-gray-600 dark:text-gray-300"
                     >
                       <Edit2 className="h-4 w-4" />
                     </Button>

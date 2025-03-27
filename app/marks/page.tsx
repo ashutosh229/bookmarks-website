@@ -39,6 +39,7 @@ export default function ExamMarksTracker() {
   });
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editRecord, setEditRecord] = useState<ExamRecord | null>(null);
+  const [isDialogOpenForUpdating, setIsDialogOpenForUpdating] = useState(false);
 
   useEffect(() => {
     fetchRecords();
@@ -198,6 +199,9 @@ export default function ExamMarksTracker() {
         <Card key={course} className="bg-gray-100 dark:bg-gray-800">
           <CardHeader>
             <CardTitle>{course}</CardTitle>
+            <Button variant="destructive" onClick={() => deleteCourse(course)}>
+              Delete Course
+            </Button>
           </CardHeader>
           <CardContent>
             <Table>
@@ -216,6 +220,17 @@ export default function ExamMarksTracker() {
                     <TableCell>{rec.marks}</TableCell>
                     <TableCell>{rec.weightage}%</TableCell>
                     <TableCell>
+                      <Button
+                        variant="secondary"
+                        onClick={() => {
+                          setEditRecord(rec);
+                          setIsDialogOpenForUpdating(true);
+                        }}
+                      >
+                        Edit
+                      </Button>
+                    </TableCell>
+                    <TableCell>
                       {((rec.marks * rec.weightage) / 100).toFixed(2)}
                     </TableCell>
                   </TableRow>
@@ -229,6 +244,52 @@ export default function ExamMarksTracker() {
           </CardContent>
         </Card>
       ))}
+
+      {/* Edit Dialog */}
+      <Dialog
+        open={isDialogOpenForUpdating}
+        onOpenChange={setIsDialogOpenForUpdating}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Exam Record</DialogTitle>
+          </DialogHeader>
+          {editRecord && (
+            <div className="space-y-3">
+              <Input
+                placeholder="Exam Type"
+                value={editRecord.examType}
+                onChange={(e) =>
+                  setEditRecord({ ...editRecord, examType: e.target.value })
+                }
+              />
+              <Input
+                type="number"
+                placeholder="Marks"
+                value={editRecord.marks}
+                onChange={(e) =>
+                  setEditRecord({
+                    ...editRecord,
+                    marks: Number(e.target.value),
+                  })
+                }
+              />
+              <Input
+                type="number"
+                placeholder="Weightage (%)"
+                value={editRecord.weightage}
+                onChange={(e) =>
+                  setEditRecord({
+                    ...editRecord,
+                    weightage: Number(e.target.value),
+                  })
+                }
+              />
+              <Button onClick={updateRecord}>Update</Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

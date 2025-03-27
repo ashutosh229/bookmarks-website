@@ -13,4 +13,5 @@ export interface ExamRecord {
     examType: string;
     marks: number;
     weightage: number;
+    created_at?: Date;
 }

@@ -41,6 +41,8 @@ export default function ExamMarksTracker() {
   };
 
   const addRecord = async () => {
+    //testing
+    console.log("Adding the record");
     const { error } = await supabase.from("exam_records").insert([newRecord]);
     if (!error) {
       setIsDialogOpen(false); // Close the dialog

@@ -3,7 +3,12 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Select, SelectItem } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from "@/components/ui/select";
 import { supabase } from "@/lib/supabase";
 import { ExamRecord } from "@/lib/types";
 import { useEffect, useState } from "react";
@@ -90,12 +95,17 @@ export default function ExamMarksTracker() {
       </Card>
 
       <Select onValueChange={setFilter} value={filter}>
-        <SelectItem value="">All Courses</SelectItem>
-        {Array.from(new Set(records.map((rec) => rec.course))).map((course) => (
-          <SelectItem key={course} value={course}>
-            {course}
-          </SelectItem>
-        ))}
+        <SelectTrigger className="w-full">Filter by Course</SelectTrigger>
+        <SelectContent>
+          <SelectItem value="">All Courses</SelectItem>
+          {Array.from(new Set(records.map((rec) => rec.course))).map(
+            (course) => (
+              <SelectItem key={course} value={course}>
+                {course}
+              </SelectItem>
+            )
+          )}
+        </SelectContent>
       </Select>
 
       {filteredRecords.map((rec, index) => (

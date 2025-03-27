@@ -1,60 +1,59 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
+import { Moon, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-const navLinks = [
-  { name: "Marks", href: "/marks" },
-  { name: "Expenses", href: "/expenses-tracker" },
-  { name: "Bookmarks", href: "/bookmarks" },
+const services = [
+  { name: "Marks Tracker", link: "/marks" },
+  { name: "Expenses Tracker", link: "/expenses-tracker" },
+  { name: "Bookmarker", link: "/bookmarks" },
 ];
 
-export function Header() {
-  const [hovered, setHovered] = useState<string | null>(null);
+export default function Header() {
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
 
   return (
-    <motion.header
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="flex justify-between items-center px-6 py-4 shadow-md bg-white dark:bg-gray-900 sticky top-0 z-50"
-    >
+    <header className="w-full bg-white dark:bg-gray-800 shadow-md py-4 px-6 flex items-center justify-between">
       {/* Logo */}
-      <Link
-        href="/"
-        className="text-2xl font-bold text-blue-600 dark:text-white"
-      >
-        My App
-      </Link>
+      <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+        My Dashboard
+      </h1>
 
-      {/* Navigation Links */}
-      <nav className="hidden md:flex space-x-6">
-        {navLinks.map((link) => (
-          <Link
-            key={link.href}
-            href={link.href}
-            onMouseEnter={() => setHovered(link.name)}
-            onMouseLeave={() => setHovered(null)}
-            className="relative text-gray-700 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400 transition"
-          >
-            {link.name}
-            {hovered === link.name && (
-              <motion.div
-                className="absolute left-0 w-full h-0.5 bg-blue-500"
-                layoutId="underline"
-              />
-            )}
-          </Link>
-        ))}
+      {/* Navigation */}
+      <nav className="flex gap-6">
+        {services?.length ? (
+          services.map((service) => (
+            <Link
+              key={service.link}
+              href={service.link}
+              className="hover:underline"
+            >
+              {service.name}
+            </Link>
+          ))
+        ) : (
+          <p>No services available</p>
+        )}
       </nav>
 
-      {/* Mobile Menu (Optional) */}
-      <div className="md:hidden">
-        <Button variant="ghost">☰</Button>
-      </div>
-    </motion.header>
+      {/* Dark Mode Toggle */}
+      {mounted && (
+        <button
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          className="p-2 rounded-full bg-gray-200 dark:bg-gray-700"
+        >
+          {theme === "dark" ? (
+            <Sun className="w-5 h-5" />
+          ) : (
+            <Moon className="w-5 h-5" />
+          )}
+        </button>
+      )}
+    </header>
   );
 }
-
-

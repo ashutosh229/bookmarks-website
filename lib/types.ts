@@ -6,3 +6,11 @@ export type Bookmark = {
     keywords: string[];
     comment: string;
 };
+
+export interface ExamRecord {
+    id?: number;
+    course: string;
+    examType: string;
+    marks: number;
+    weightage: number;
+}

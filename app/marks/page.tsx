@@ -2,6 +2,13 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -22,6 +29,7 @@ export default function ExamMarksTracker() {
     marks: 0,
     weightage: 0,
   });
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchRecords();
@@ -33,12 +41,12 @@ export default function ExamMarksTracker() {
   };
 
   const addRecord = async () => {
-    const { data, error } = await supabase
-      .from("exam_records")
-      .insert([newRecord])
-      .select("*");
-    if (!error && data) setRecords([...records, ...data]);
-    setNewRecord({ course: "", examType: "", marks: 0, weightage: 0 });
+    const { error } = await supabase.from("exam_records").insert([newRecord]);
+    if (!error) {
+      setIsDialogOpen(false); // Close the dialog
+      setNewRecord({ course: "", examType: "", marks: 0, weightage: 0 });
+      fetchRecords(); // Reload the records
+    }
   };
 
   const calculateTotalPercentage = (course: string) => {
@@ -55,49 +63,59 @@ export default function ExamMarksTracker() {
 
   return (
     <div className="p-6 max-w-3xl mx-auto space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Record New Exam</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <Input
-            placeholder="Course Name"
-            value={newRecord.course}
-            onChange={(e) =>
-              setNewRecord({ ...newRecord, course: e.target.value })
-            }
-          />
-          <Input
-            placeholder="Exam Type"
-            value={newRecord.examType}
-            onChange={(e) =>
-              setNewRecord({ ...newRecord, examType: e.target.value })
-            }
-          />
-          <Input
-            type="number"
-            placeholder="Marks"
-            value={newRecord.marks}
-            onChange={(e) =>
-              setNewRecord({ ...newRecord, marks: Number(e.target.value) })
-            }
-          />
-          <Input
-            type="number"
-            placeholder="Weightage (%)"
-            value={newRecord.weightage}
-            onChange={(e) =>
-              setNewRecord({ ...newRecord, weightage: Number(e.target.value) })
-            }
-          />
-          <Button onClick={addRecord}>Add Record</Button>
-        </CardContent>
-      </Card>
+      {/* Add Record Button + Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogTrigger asChild>
+          <Button>Add New Record</Button>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Record New Exam</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input
+              placeholder="Course Name"
+              value={newRecord.course}
+              onChange={(e) =>
+                setNewRecord({ ...newRecord, course: e.target.value })
+              }
+            />
+            <Input
+              placeholder="Exam Type"
+              value={newRecord.examType}
+              onChange={(e) =>
+                setNewRecord({ ...newRecord, examType: e.target.value })
+              }
+            />
+            <Input
+              type="number"
+              placeholder="Marks"
+              value={newRecord.marks}
+              onChange={(e) =>
+                setNewRecord({ ...newRecord, marks: Number(e.target.value) })
+              }
+            />
+            <Input
+              type="number"
+              placeholder="Weightage (%)"
+              value={newRecord.weightage}
+              onChange={(e) =>
+                setNewRecord({
+                  ...newRecord,
+                  weightage: Number(e.target.value),
+                })
+              }
+            />
+            <Button onClick={addRecord}>Save Record</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
-      <Select onValueChange={setFilter} value={filter}>
+      {/* Filter Dropdown */}
+      <Select onValueChange={setFilter} value={filter || "all"}>
         <SelectTrigger className="w-full">Filter by Course</SelectTrigger>
         <SelectContent>
-          <SelectItem value="">All Courses</SelectItem>
+          <SelectItem value="all">All Courses</SelectItem>
           {Array.from(new Set(records.map((rec) => rec.course))).map(
             (course) => (
               <SelectItem key={course} value={course}>
@@ -108,6 +126,7 @@ export default function ExamMarksTracker() {
         </SelectContent>
       </Select>
 
+      {/* Exam Records List */}
       {filteredRecords.map((rec, index) => (
         <Card key={rec.id || index}>
           <CardContent className="p-4 space-y-2">
@@ -131,6 +150,7 @@ export default function ExamMarksTracker() {
         </Card>
       ))}
 
+      {/* Total Percentage for Each Course */}
       {Array.from(new Set(records.map((rec) => rec.course))).map((course) => (
         <Card key={course} className="mt-4">
           <CardHeader>

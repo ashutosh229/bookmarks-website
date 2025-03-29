@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/lib/supabase";
@@ -104,6 +105,10 @@ export default function ExpenseTracker() {
               <strong>Total Expense (Included):</strong> ₹{totalExpenseIncluded}
             </p>
             <p>
+              <strong>Total Savings (Included):</strong> ₹
+              {totalIncome - totalExpenseIncluded}
+            </p>
+            <p>
               <strong>Total Expense (Excluded):</strong> ₹{totalExpenseExcluded}
             </p>
             <p>
@@ -150,6 +155,15 @@ export default function ExpenseTracker() {
                   setNewExpense({ ...newExpense, description: e.target.value })
                 }
               />
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  checked={newExpense.includeInTotal}
+                  onCheckedChange={(checked: boolean) =>
+                    setNewExpense({ ...newExpense, includeInTotal: checked })
+                  }
+                />
+                <label>Include in Total</label>
+              </div>
               <Button onClick={addExpense}>Save</Button>
             </DialogContent>
           </Dialog>
@@ -184,7 +198,7 @@ export default function ExpenseTracker() {
               <Button>Add Due</Button>
             </DialogTrigger>
             <DialogContent>
-                <DialogTitle>New Due</DialogTitle>
+              <DialogTitle>New Due</DialogTitle>
               <Input
                 placeholder="Amount"
                 type="number"

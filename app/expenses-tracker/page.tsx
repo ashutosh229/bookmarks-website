@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/lib/supabase";
 import { DueRecord, ExpenseRecord, IncomeRecord } from "@/lib/types";
+import { DialogTitle } from "@radix-ui/react-dialog";
 import { useEffect, useState } from "react";
 
 export default function ExpenseTracker() {
@@ -88,116 +89,129 @@ export default function ExpenseTracker() {
   const totalDue = totalOptionalDue + totalNonOptionalDue;
 
   return (
-    <div className="p-6 max-w-3xl mx-auto space-y-6">
-      {/* Totals Summary */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Financial Summary</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p>
-            <strong>Total Income:</strong> ₹{totalIncome}
-          </p>
-          <p>
-            <strong>Total Expense (Included):</strong> ₹{totalExpenseIncluded}
-          </p>
-          <p>
-            <strong>Total Expense (Excluded):</strong> ₹{totalExpenseExcluded}
-          </p>
-          <p>
-            <strong>Total Expense:</strong> ₹{totalExpense}
-          </p>
-          <p>
-            <strong>Total Optional Due:</strong> ₹{totalOptionalDue}
-          </p>
-          <p>
-            <strong>Total Non-Optional Due:</strong> ₹{totalNonOptionalDue}
-          </p>
-          <p>
-            <strong>Total Due:</strong> ₹{totalDue}
-          </p>
-        </CardContent>
-      </Card>
+    <div className="p-6 max-w-5xl mx-auto flex flex-col lg:flex-row gap-8">
+      {/* Sidebar for Totals */}
+      <aside className="lg:w-1/3 w-full">
+        <Card>
+          <CardHeader>
+            <CardTitle>Financial Summary</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <p>
+              <strong>Total Income:</strong> ₹{totalIncome}
+            </p>
+            <p>
+              <strong>Total Expense (Included):</strong> ₹{totalExpenseIncluded}
+            </p>
+            <p>
+              <strong>Total Expense (Excluded):</strong> ₹{totalExpenseExcluded}
+            </p>
+            <p>
+              <strong>Total Expense:</strong> ₹{totalExpense}
+            </p>
+            <p>
+              <strong>Total Optional Due:</strong> ₹{totalOptionalDue}
+            </p>
+            <p>
+              <strong>Total Non-Optional Due:</strong> ₹{totalNonOptionalDue}
+            </p>
+            <p>
+              <strong>Total Due:</strong> ₹{totalDue}
+            </p>
+          </CardContent>
+        </Card>
+      </aside>
 
-      {/* Add Expense */}
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button>Add Expense</Button>
-        </DialogTrigger>
-        <DialogContent>
-          <Input
-            placeholder="Amount"
-            type="number"
-            value={newExpense.amount}
-            onChange={(e) =>
-              setNewExpense({ ...newExpense, amount: Number(e.target.value) })
-            }
-          />
-          <Input
-            placeholder="Description"
-            value={newExpense.description}
-            onChange={(e) =>
-              setNewExpense({ ...newExpense, description: e.target.value })
-            }
-          />
-          <Button onClick={addExpense}>Save</Button>
-        </DialogContent>
-      </Dialog>
+      {/* Main Content */}
+      <main className="flex-1">
+        {/* Buttons with spacing */}
+        <div className="flex flex-wrap gap-4 mb-6">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button>Add Expense</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogTitle>New Expense</DialogTitle>
+              <Input
+                placeholder="Amount"
+                type="number"
+                value={newExpense.amount}
+                onChange={(e) =>
+                  setNewExpense({
+                    ...newExpense,
+                    amount: Number(e.target.value),
+                  })
+                }
+              />
+              <Input
+                placeholder="Description"
+                value={newExpense.description}
+                onChange={(e) =>
+                  setNewExpense({ ...newExpense, description: e.target.value })
+                }
+              />
+              <Button onClick={addExpense}>Save</Button>
+            </DialogContent>
+          </Dialog>
 
-      {/* Add Income */}
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button>Add Income</Button>
-        </DialogTrigger>
-        <DialogContent>
-          <Input
-            placeholder="Amount"
-            type="number"
-            value={newIncome.amount}
-            onChange={(e) =>
-              setNewIncome({ ...newIncome, amount: Number(e.target.value) })
-            }
-          />
-          <Input
-            placeholder="Description"
-            value={newIncome.description}
-            onChange={(e) =>
-              setNewIncome({ ...newIncome, description: e.target.value })
-            }
-          />
-          <Button onClick={addIncome}>Save</Button>
-        </DialogContent>
-      </Dialog>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button>Add Income</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogTitle>New Income</DialogTitle>
+              <Input
+                placeholder="Amount"
+                type="number"
+                value={newIncome.amount}
+                onChange={(e) =>
+                  setNewIncome({ ...newIncome, amount: Number(e.target.value) })
+                }
+              />
+              <Input
+                placeholder="Description"
+                value={newIncome.description}
+                onChange={(e) =>
+                  setNewIncome({ ...newIncome, description: e.target.value })
+                }
+              />
+              <Button onClick={addIncome}>Save</Button>
+            </DialogContent>
+          </Dialog>
 
-      {/* Add Due */}
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button>Add Due</Button>
-        </DialogTrigger>
-        <DialogContent>
-          <Input
-            placeholder="Amount"
-            type="number"
-            value={newDue.amount}
-            onChange={(e) =>
-              setNewDue({ ...newDue, amount: Number(e.target.value) })
-            }
-          />
-          <Input
-            placeholder="Description"
-            value={newDue.description}
-            onChange={(e) =>
-              setNewDue({ ...newDue, description: e.target.value })
-            }
-          />
-          <Input
-            placeholder="Person"
-            value={newDue.person}
-            onChange={(e) => setNewDue({ ...newDue, person: e.target.value })}
-          />
-          <Button onClick={addDue}>Save</Button>
-        </DialogContent>
-      </Dialog>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button>Add Due</Button>
+            </DialogTrigger>
+            <DialogContent>
+                <DialogTitle>New Due</DialogTitle>
+              <Input
+                placeholder="Amount"
+                type="number"
+                value={newDue.amount}
+                onChange={(e) =>
+                  setNewDue({ ...newDue, amount: Number(e.target.value) })
+                }
+              />
+              <Input
+                placeholder="Description"
+                value={newDue.description}
+                onChange={(e) =>
+                  setNewDue({ ...newDue, description: e.target.value })
+                }
+              />
+              <Input
+                placeholder="Person"
+                value={newDue.person}
+                onChange={(e) =>
+                  setNewDue({ ...newDue, person: e.target.value })
+                }
+              />
+              <Button onClick={addDue}>Save</Button>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </main>
     </div>
   );
 }

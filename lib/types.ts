@@ -17,26 +17,26 @@ export interface ExamRecord {
 }
 
 export type ExpenseRecord = {
-    id?: string;
+    id?: number;
     amount: number;
     description: string;
     includeInTotal: boolean;
-    created_at?: string;
+    created_at?: Date;
 };
 
 export type IncomeRecord = {
-    id?: string;
+    id?: number;
     amount: number;
     description: string;
-    created_at?: string;
+    created_at?: Date;
 };
 
 export type DueRecord = {
-    id?: string;
+    id?: number;
     amount: number;
     description: string;
     person: string;
     isPaid: boolean;
     isOptional: boolean;
-    created_at?: string;
+    created_at?: Date;
 };

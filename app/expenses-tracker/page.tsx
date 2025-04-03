@@ -199,6 +199,7 @@ export default function ExpenseTracker() {
             </DialogTrigger>
             <DialogContent>
               <DialogTitle>New Due</DialogTitle>
+
               <Input
                 placeholder="Amount"
                 type="number"
@@ -221,6 +222,29 @@ export default function ExpenseTracker() {
                   setNewDue({ ...newDue, person: e.target.value })
                 }
               />
+
+              {/* Checkbox for Paid Status */}
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  checked={newDue.isPaid}
+                  onCheckedChange={(checked: boolean) =>
+                    setNewDue({ ...newDue, isPaid: checked })
+                  }
+                />
+                <label>Mark as Paid</label>
+              </div>
+
+              {/* Checkbox for Optional Status */}
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  checked={newDue.isOptional}
+                  onCheckedChange={(checked: boolean) =>
+                    setNewDue({ ...newDue, isOptional: checked })
+                  }
+                />
+                <label>Optional Due</label>
+              </div>
+
               <Button onClick={addDue}>Save</Button>
             </DialogContent>
           </Dialog>

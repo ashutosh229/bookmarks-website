@@ -8,9 +8,9 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Bookmarker",
+  title: "MeTracker",
   description:
-    "This is a bookmarks website which is used to store records of my important links for internships and placements",
+    "This is an application which helps me to track my records like marks, important bookmarks, expenses and a lot more",
   icons: "./logo.png",
 };
 

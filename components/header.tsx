@@ -3,7 +3,7 @@
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
-import services from "@/data/services";
+import services from "../data/services";
 import { useEffect, useState } from "react";
 
 export default function Header() {

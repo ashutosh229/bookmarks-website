@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import services from "@/data/services";
+import services from "../data/services";
 
 const HomePage = () => {
   return (

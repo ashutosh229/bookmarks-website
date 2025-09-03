@@ -40,4 +40,5 @@ next-env.d.ts
 # custom  
 /data/courses.json
 /data/timetable.json
-/supabase/
+/supabase
+gitpush.sh

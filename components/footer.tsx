@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Github, Linkedin, Twitter } from "lucide-react";
+import socials from "@/data/socials";
 
 export default function Footer() {
   return (
@@ -20,30 +20,18 @@ export default function Footer() {
 
         {/* Social Links */}
         <div className="flex justify-center space-x-6 mt-5">
-          <motion.a
-            whileHover={{ scale: 1.1 }}
-            href="https://github.com/ashutosh229"
-            target="_blank"
-            className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-300"
-          >
-            <Github size={28} />
-          </motion.a>
-          <motion.a
-            whileHover={{ scale: 1.1 }}
-            href="https://linkedin.com/in/ashutosh-kumar-jha-601098280"
-            target="_blank"
-            className="text-gray-700 dark:text-gray-300 hover:text-blue-700 transition-colors duration-300"
-          >
-            <Linkedin size={28} />
-          </motion.a>
-          <motion.a
-            whileHover={{ scale: 1.1 }}
-            href="https://twitter.com/ashutoshkj0390"
-            target="_blank"
-            className="text-gray-700 dark:text-gray-300 hover:text-blue-500 transition-colors duration-300"
-          >
-            <Twitter size={28} />
-          </motion.a>
+          {socials.map((social, index) => {
+            return (
+              <motion.a
+                whileHover={{ scale: 1.1 }}
+                href={social.link}
+                target="_blank"
+                className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-300"
+              >
+                <social.icon size={28}></social.icon>
+              </motion.a>
+            );
+          })}
         </div>
 
         <div className="mt-6 border-t border-gray-300 dark:border-gray-700 pt-4">

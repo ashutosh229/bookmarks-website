@@ -22,29 +22,22 @@ export default function Header() {
 
   return (
     <header className="w-full bg-white dark:bg-gray-800 shadow-md py-4 px-6 flex items-center justify-between">
-      {/* Logo */}
       <h1 className="text-xl font-bold text-gray-900 dark:text-white">
         My Dashboard
       </h1>
 
-      {/* Navigation */}
       <nav className="flex gap-6">
-        {services?.length ? (
-          services.map((service) => (
-            <Link
-              key={service.link}
-              href={service.link}
-              className="hover:underline"
-            >
-              {service.name}
-            </Link>
-          ))
-        ) : (
-          <p>No services available</p>
-        )}
+        {services.map((service) => (
+          <Link
+            key={service.link}
+            href={service.link}
+            className="hover:underline"
+          >
+            {service.name}
+          </Link>
+        ))}
       </nav>
 
-      {/* Dark Mode Toggle */}
       {mounted && (
         <button
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}

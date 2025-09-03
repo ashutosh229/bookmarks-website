@@ -3,16 +3,8 @@
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
-import { link } from "node:fs";
+import services from "@/data/services";
 import { useEffect, useState } from "react";
-
-const services = [
-  { name: "Marks Tracker", link: "/marks" },
-  { name: "Expenses Tracker", link: "/expenses-tracker" },
-  { name: "Bookmarker", link: "/bookmarks" },
-  { name: "Monthly Expenses", link: "/monthly-expense-tracker" },
-  { name: "Companies", link: "/companies" },
-];
 
 export default function Header() {
   const { theme, setTheme } = useTheme();

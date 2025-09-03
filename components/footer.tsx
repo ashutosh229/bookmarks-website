@@ -18,7 +18,6 @@ export default function Footer() {
           Full-Stack Developer | Open Source Enthusiast
         </p>
 
-        {/* Social Links */}
         <div className="flex justify-center space-x-6 mt-5">
           {socials.map((social, index) => {
             return (

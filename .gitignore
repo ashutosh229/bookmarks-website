@@ -38,5 +38,6 @@ next-env.d.ts
 .env
 
 # custom  
-/data/
+/data/courses.json
+/data/timetable.json
 /supabase/

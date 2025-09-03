@@ -22,6 +22,7 @@ export default function Footer() {
           {socials.map((social, index) => {
             return (
               <motion.a
+                key={index}
                 whileHover={{ scale: 1.1 }}
                 href={social.link}
                 target="_blank"

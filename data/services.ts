@@ -1,9 +1,28 @@
 const services = [
-  { name: "Marks Tracker", link: "/marks" },
-  { name: "Expenses Tracker", link: "/expenses-tracker" },
-  { name: "Bookmarker", link: "/bookmarks" },
-  { name: "Monthly Expenses", link: "/monthly-expense-tracker" },
-  { name: "Companies", link: "/companies" },
+  {
+    name: "Marks Tracker",
+    link: "/marks",
+    description: "Track and manage your academic performance easily.",
+  },
+  {
+    name: "Expenses Tracker",
+    link: "/expenses-tracker",
+    description: "Monitor your expenses and manage finances effectively.",
+  },
+  {
+    name: "Bookmarker",
+    link: "/bookmarks",
+    description: "Keep track of all your important bookmarks and hyperlinks",
+  },
+  {
+    name: "Monthly Expenses",
+    link: "/monthly-expense-tracker",
+    description: "Analyses monthly expenses and other financial transactions",
+  },
+  {
+    name: "Companies",
+    link: "/companies",
+    description: "Keeps the track for the list of the companies ",
+  },
 ];
-
 export default services;

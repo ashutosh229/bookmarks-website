@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-
+import { supabase } from "@/lib/supabase";
 import { DueRecord, ExpenseRecord, IncomeRecord } from "@/lib/types";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { useEffect, useState } from "react";

@@ -24,5 +24,10 @@ const services = [
     link: "/companies",
     description: "Keeps the track for the list of the companies ",
   },
+  {
+    name: "Todos",
+    link: "/todo",
+    description: "Manage your tasks and to-do lists efficiently.",
+  },
 ];
 export default services;

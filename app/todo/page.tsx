@@ -26,6 +26,7 @@ const availableLists = [
   "Hackathons",
   "Coding Contests",
   "Weekends",
+  "Daily Todo",
 ];
 
 export default function TodosPage() {

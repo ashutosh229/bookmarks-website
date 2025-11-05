@@ -59,6 +59,8 @@ export default function Home() {
   const [editingBookmark, setEditingBookmark] = useState<Bookmark | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterKeyword, setFilterKeyword] = useState("");
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchBookmarks();
@@ -78,7 +80,13 @@ export default function Home() {
     setBookmarks(data || []);
   };
 
-  const handleAddBookmark = async () => {
+  const handleAddBookmark = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!newBookmark.url.trim()) {
+      toast.error("URL is required");
+      return;
+    }
+
     const keywords = newBookmark.keywords
       .split(",")
       .map((k) => k.trim())
@@ -104,6 +112,7 @@ export default function Home() {
       comment: "",
       status: "not_visited",
     });
+    setIsAddDialogOpen(false);
     fetchBookmarks();
   };
 
@@ -131,7 +140,9 @@ export default function Home() {
     return matchesStatus && matchesKeyword;
   });
 
-  const handleUpdateBookmark = async () => {
+  const handleUpdateBookmark = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+
     if (!editingBookmark || !editingBookmark.id) {
       toast.error("Invalid bookmark data");
       return;
@@ -151,12 +162,12 @@ export default function Home() {
       .eq("id", id);
 
     if (error) {
-      console.error();
       toast.error("Error updating bookmark");
       return;
     }
 
     toast.success("Bookmark updated successfully");
+    setIsEditDialogOpen(false);
     setEditingBookmark(null);
     fetchBookmarks();
   };
@@ -170,11 +181,11 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 py-8">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="mb-8">
+        <div className="mb-8 flex items-center justify-between">
           <h1 className="text-4xl font-bold">Bookmark Manager</h1>
 
           {/* Add Bookmark Dialog */}
-          <Dialog>
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
               <Button className="gap-2">
                 <BookmarkPlus className="h-4 w-4" />
@@ -183,68 +194,75 @@ export default function Home() {
             </DialogTrigger>
 
             <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add New Bookmark</DialogTitle>
-                <DialogDescription>
-                  Add a new bookmark with URL, title, and additional
-                  information.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="url">URL</Label>
-                  <Input
-                    id="url"
-                    value={newBookmark.url}
-                    onChange={(e) =>
-                      setNewBookmark({ ...newBookmark, url: e.target.value })
-                    }
-                    placeholder="https://example.com"
-                  />
+              <form onSubmit={handleAddBookmark}>
+                <DialogHeader>
+                  <DialogTitle>Add New Bookmark</DialogTitle>
+                  <DialogDescription>
+                    Add a new bookmark with URL, title, and additional
+                    information.
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="url">URL</Label>
+                    <Input
+                      id="url"
+                      value={newBookmark.url}
+                      onChange={(e) =>
+                        setNewBookmark({ ...newBookmark, url: e.target.value })
+                      }
+                      placeholder="https://example.com"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="title">Title</Label>
+                    <Input
+                      id="title"
+                      value={newBookmark.title}
+                      onChange={(e) =>
+                        setNewBookmark({
+                          ...newBookmark,
+                          title: e.target.value,
+                        })
+                      }
+                      placeholder="Bookmark Title"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="keywords">Keywords (comma-separated)</Label>
+                    <Input
+                      id="keywords"
+                      value={newBookmark.keywords}
+                      onChange={(e) =>
+                        setNewBookmark({
+                          ...newBookmark,
+                          keywords: e.target.value,
+                        })
+                      }
+                      placeholder="tech, article, tutorial"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="comment">Comment</Label>
+                    <Textarea
+                      id="comment"
+                      value={newBookmark.comment}
+                      onChange={(e) =>
+                        setNewBookmark({
+                          ...newBookmark,
+                          comment: e.target.value,
+                        })
+                      }
+                      placeholder="Add your notes here..."
+                    />
+                  </div>
                 </div>
-                <div>
-                  <Label htmlFor="title">Title</Label>
-                  <Input
-                    id="title"
-                    value={newBookmark.title}
-                    onChange={(e) =>
-                      setNewBookmark({ ...newBookmark, title: e.target.value })
-                    }
-                    placeholder="Bookmark Title"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="keywords">Keywords (comma-separated)</Label>
-                  <Input
-                    id="keywords"
-                    value={newBookmark.keywords}
-                    onChange={(e) =>
-                      setNewBookmark({
-                        ...newBookmark,
-                        keywords: e.target.value,
-                      })
-                    }
-                    placeholder="tech, article, tutorial"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="comment">Comment</Label>
-                  <Textarea
-                    id="comment"
-                    value={newBookmark.comment}
-                    onChange={(e) =>
-                      setNewBookmark({
-                        ...newBookmark,
-                        comment: e.target.value,
-                      })
-                    }
-                    placeholder="Add your notes here..."
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button onClick={handleAddBookmark}>Add Bookmark</Button>
-              </DialogFooter>
+
+                <DialogFooter>
+                  <Button type="submit">Add Bookmark</Button>
+                </DialogFooter>
+              </form>
             </DialogContent>
           </Dialog>
         </div>
@@ -317,10 +335,17 @@ export default function Home() {
                 )}
               </CardContent>
               <CardFooter className="flex justify-end gap-2">
-                <Dialog>
+                {/* Edit Dialog */}
+                <Dialog
+                  open={isEditDialogOpen && editingBookmark?.id === bookmark.id}
+                  onOpenChange={setIsEditDialogOpen}
+                >
                   <DialogTrigger asChild>
                     <Button
-                      onClick={() => setEditingBookmark(bookmark)}
+                      onClick={() => {
+                        setEditingBookmark(bookmark);
+                        setIsEditDialogOpen(true);
+                      }}
                       variant="outline"
                       size="icon"
                       className="dark:border-gray-600 dark:text-gray-300"
@@ -328,103 +353,107 @@ export default function Home() {
                       <Edit2 className="h-4 w-4" />
                     </Button>
                   </DialogTrigger>
+
                   <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Edit Bookmark</DialogTitle>
-                    </DialogHeader>
                     {editingBookmark && (
-                      <div className="space-y-4">
-                        <div>
-                          <Label htmlFor="edit-url">URL</Label>
-                          <Input
-                            id="edit-url"
-                            value={editingBookmark.url}
-                            onChange={(e) =>
-                              setEditingBookmark({
-                                ...editingBookmark,
-                                url: e.target.value,
-                              })
-                            }
-                          />
+                      <form onSubmit={handleUpdateBookmark}>
+                        <DialogHeader>
+                          <DialogTitle>Edit Bookmark</DialogTitle>
+                        </DialogHeader>
+
+                        <div className="space-y-4">
+                          <div>
+                            <Label htmlFor="edit-url">URL</Label>
+                            <Input
+                              id="edit-url"
+                              value={editingBookmark.url}
+                              onChange={(e) =>
+                                setEditingBookmark({
+                                  ...editingBookmark,
+                                  url: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="edit-title">Title</Label>
+                            <Input
+                              id="edit-title"
+                              value={editingBookmark.title}
+                              onChange={(e) =>
+                                setEditingBookmark({
+                                  ...editingBookmark,
+                                  title: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="edit-status">Status</Label>
+                            <Select
+                              value={editingBookmark.status}
+                              onValueChange={(
+                                value: "not_visited" | "visited" | "revisit"
+                              ) =>
+                                setEditingBookmark({
+                                  ...editingBookmark,
+                                  status: value,
+                                })
+                              }
+                            >
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="not_visited">
+                                  Not Visited
+                                </SelectItem>
+                                <SelectItem value="visited">Visited</SelectItem>
+                                <SelectItem value="revisit">Revisit</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label htmlFor="edit-keywords">
+                              Keywords (comma-separated)
+                            </Label>
+                            <Input
+                              id="edit-keywords"
+                              value={editingBookmark.keywords.join(", ")}
+                              onChange={(e) =>
+                                setEditingBookmark({
+                                  ...editingBookmark,
+                                  keywords: e.target.value
+                                    .split(",")
+                                    .map((k) => k.trim()),
+                                })
+                              }
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="edit-comment">Comment</Label>
+                            <Textarea
+                              id="edit-comment"
+                              value={editingBookmark.comment}
+                              onChange={(e) =>
+                                setEditingBookmark({
+                                  ...editingBookmark,
+                                  comment: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
                         </div>
-                        <div>
-                          <Label htmlFor="edit-title">Title</Label>
-                          <Input
-                            id="edit-title"
-                            value={editingBookmark.title}
-                            onChange={(e) =>
-                              setEditingBookmark({
-                                ...editingBookmark,
-                                title: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="edit-status">Status</Label>
-                          <Select
-                            value={editingBookmark.status}
-                            onValueChange={(
-                              value: "not_visited" | "visited" | "revisit"
-                            ) =>
-                              setEditingBookmark({
-                                ...editingBookmark,
-                                status: value,
-                              })
-                            }
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="not_visited">
-                                Not Visited
-                              </SelectItem>
-                              <SelectItem value="visited">Visited</SelectItem>
-                              <SelectItem value="revisit">Revisit</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label htmlFor="edit-keywords">
-                            Keywords (comma-separated)
-                          </Label>
-                          <Input
-                            id="edit-keywords"
-                            value={editingBookmark.keywords.join(", ")}
-                            onChange={(e) =>
-                              setEditingBookmark({
-                                ...editingBookmark,
-                                keywords: e.target.value
-                                  .split(",")
-                                  .map((k) => k.trim()),
-                              })
-                            }
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="edit-comment">Comment</Label>
-                          <Textarea
-                            id="edit-comment"
-                            value={editingBookmark.comment}
-                            onChange={(e) =>
-                              setEditingBookmark({
-                                ...editingBookmark,
-                                comment: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
-                      </div>
+
+                        <DialogFooter>
+                          <Button type="submit">Save Changes</Button>
+                        </DialogFooter>
+                      </form>
                     )}
-                    <DialogFooter>
-                      <Button onClick={handleUpdateBookmark}>
-                        Save Changes
-                      </Button>
-                    </DialogFooter>
                   </DialogContent>
                 </Dialog>
 
+                {/* Delete Dialog */}
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button variant="destructive" size="icon">

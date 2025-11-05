@@ -17,7 +17,6 @@ import {
 
 const availableLists = [
   "General",
-  "AI Planet",
   "Daily",
   "On Campus Interns",
   "Off Campus Interns",

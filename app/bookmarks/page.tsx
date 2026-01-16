@@ -67,17 +67,31 @@ export default function Home() {
   }, []);
 
   const fetchBookmarks = async () => {
-    const { data, error } = await supabase
-      .from("bookmarks")
-      .select("*")
-      .order("created_at", { ascending: false });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000); // 8 seconds
 
-    if (error) {
-      toast.error("Error fetching bookmarks");
-      return;
+    try {
+      const { data, error } = await supabase
+        .from("bookmarks")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .abortSignal(controller.signal);
+
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+
+      setBookmarks(data || []);
+    } catch (err: any) {
+      if (err.name === "AbortError") {
+        toast.error("Supabase request timed out");
+      } else {
+        toast.error("Failed to load bookmarks");
+      }
+    } finally {
+      clearTimeout(timeout);
     }
-
-    setBookmarks(data || []);
   };
 
   const handleAddBookmark = async (e?: React.FormEvent) => {

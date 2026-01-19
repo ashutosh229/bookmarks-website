@@ -15,7 +15,7 @@ export default async function BookmarksPage({
     .from("bookmarks")
     .select("*")
     .order("created_at", { ascending: false })
-    .limit(50);
+    .limit(20);
   if (searchParams.status && searchParams.status !== "all") {
     query = query.eq("status", searchParams.status);
   }

@@ -45,6 +45,7 @@ import { Bookmark } from "@/lib/types";
 import { BookmarkPlus, Edit2, ExternalLink, Trash2 } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import { toast } from "sonner";
+import BookmarkCard from "./bookmark-card";
 
 export default function BookmarksClient({
   initialBookmarks,
@@ -282,194 +283,16 @@ export default function BookmarksClient({
 
         {/* Bookmarks List */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredBookmarks.map((bookmark) => (
-            <Card
-              key={bookmark.id}
-              className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-md dark:shadow-gray-700"
-            >
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <a
-                    href={bookmark.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-2"
-                  >
-                    {bookmark.title || bookmark.url}
-                    <ExternalLink className="h-4 w-4" />
-                  </a>
-                </CardTitle>
-                <CardDescription>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {bookmark.keywords.map((keyword, idx) => (
-                      <Badge
-                        key={idx}
-                        variant="secondary"
-                        className="dark:bg-gray-700 dark:text-gray-200"
-                      >
-                        {keyword}
-                      </Badge>
-                    ))}
-                  </div>
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Badge className={statusColors[bookmark.status]}>
-                  {bookmark.status.replace("_", " ")}
-                </Badge>
-                {bookmark.comment && (
-                  <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
-                    {bookmark.comment}
-                  </p>
-                )}
-              </CardContent>
-              <CardFooter className="flex justify-end gap-2">
-                {/* Edit Dialog */}
-                <Dialog
-                  open={isEditDialogOpen && editingBookmark?.id === bookmark.id}
-                  onOpenChange={setIsEditDialogOpen}
-                >
-                  <DialogTrigger asChild>
-                    <Button
-                      onClick={() => {
-                        setEditingBookmark(bookmark);
-                        setIsEditDialogOpen(true);
-                      }}
-                      variant="outline"
-                      size="icon"
-                      className="dark:border-gray-600 dark:text-gray-300"
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </Button>
-                  </DialogTrigger>
-
-                  <DialogContent>
-                    {editingBookmark && (
-                      <form onSubmit={handleUpdateBookmark}>
-                        <DialogHeader>
-                          <DialogTitle>Edit Bookmark</DialogTitle>
-                        </DialogHeader>
-
-                        <div className="space-y-4">
-                          <div>
-                            <Label htmlFor="edit-url">URL</Label>
-                            <Input
-                              id="edit-url"
-                              value={editingBookmark.url}
-                              onChange={(e) =>
-                                setEditingBookmark({
-                                  ...editingBookmark,
-                                  url: e.target.value,
-                                })
-                              }
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="edit-title">Title</Label>
-                            <Input
-                              id="edit-title"
-                              value={editingBookmark.title}
-                              onChange={(e) =>
-                                setEditingBookmark({
-                                  ...editingBookmark,
-                                  title: e.target.value,
-                                })
-                              }
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="edit-status">Status</Label>
-                            <Select
-                              value={editingBookmark.status}
-                              onValueChange={(
-                                value: "not_visited" | "visited" | "revisit",
-                              ) =>
-                                setEditingBookmark({
-                                  ...editingBookmark,
-                                  status: value,
-                                })
-                              }
-                            >
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="not_visited">
-                                  Not Visited
-                                </SelectItem>
-                                <SelectItem value="visited">Visited</SelectItem>
-                                <SelectItem value="revisit">Revisit</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div>
-                            <Label htmlFor="edit-keywords">
-                              Keywords (comma-separated)
-                            </Label>
-                            <Input
-                              id="edit-keywords"
-                              value={editingBookmark.keywords.join(", ")}
-                              onChange={(e) =>
-                                setEditingBookmark({
-                                  ...editingBookmark,
-                                  keywords: e.target.value
-                                    .split(",")
-                                    .map((k) => k.trim()),
-                                })
-                              }
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="edit-comment">Comment</Label>
-                            <Textarea
-                              id="edit-comment"
-                              value={editingBookmark.comment}
-                              onChange={(e) =>
-                                setEditingBookmark({
-                                  ...editingBookmark,
-                                  comment: e.target.value,
-                                })
-                              }
-                            />
-                          </div>
-                        </div>
-
-                        <DialogFooter>
-                          <Button type="submit">Save Changes</Button>
-                        </DialogFooter>
-                      </form>
-                    )}
-                  </DialogContent>
-                </Dialog>
-
-                {/* Delete Dialog */}
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="destructive" size="icon">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Delete Bookmark</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Are you sure you want to delete this bookmark? This
-                        action cannot be undone.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => handleDeleteBookmark(bookmark.id)}
-                      >
-                        Delete
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </CardFooter>
-            </Card>
-          ))}
+          {filteredBookmarks.map((bookmark) => {
+            return (
+              <BookmarkCard
+                key={bookmark.id}
+                bookmark={bookmark}
+                onEdit={setEditingBookmark}
+                onDelete={handleDeleteBookmark}
+              ></BookmarkCard>
+            );
+          })}
         </div>
       </div>
     </div>

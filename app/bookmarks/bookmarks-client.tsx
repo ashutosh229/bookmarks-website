@@ -47,11 +47,14 @@ import { useEffect, useState, useMemo } from "react";
 import { toast } from "sonner";
 import BookmarkCard from "./bookmark-card";
 
+const PAGE_SIZE = 20;
+
 export default function BookmarksClient({
   initialBookmarks,
 }: {
   initialBookmarks: Bookmark[];
 }) {
+  const [page, setPage] = useState(0);
   const [bookmarks, setBookmarks] = useState(initialBookmarks);
   const [newBookmark, setNewBookmark] = useState({
     url: "",
@@ -133,7 +136,10 @@ export default function BookmarksClient({
     });
   }, [bookmarks, filterStatus, filterKeyword]);
 
-  const visibleBookmarks = filteredBookmarks.slice(0, 50);
+  const paginatedBookmarks = filteredBookmarks.slice(
+    page * PAGE_SIZE,
+    (page + 1) * PAGE_SIZE,
+  );
 
   const handleUpdateBookmark = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -285,7 +291,7 @@ export default function BookmarksClient({
 
         {/* Bookmarks List */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {visibleBookmarks.map((bookmark) => {
+          {paginatedBookmarks.map((bookmark) => {
             return (
               <BookmarkCard
                 key={bookmark.id}
@@ -295,6 +301,19 @@ export default function BookmarksClient({
               ></BookmarkCard>
             );
           })}
+        </div>
+
+        <div className="flex justify-center gap-4 mt-8">
+          <Button disabled={page === 0} onClick={() => setPage((p) => p - 1)}>
+            Previous
+          </Button>
+
+          <Button
+            disabled={(page + 1) * PAGE_SIZE >= filteredBookmarks.length}
+            onClick={() => setPage((p) => p + 1)}
+          >
+            Next
+          </Button>
         </div>
       </div>
     </div>

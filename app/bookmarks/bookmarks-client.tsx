@@ -26,17 +26,21 @@ import { BookmarkPlus } from "lucide-react";
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import BookmarkCard from "./bookmark-card";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 const PAGE_SIZE = 20;
 
 export default function BookmarksClient({
   initialBookmarks,
+  totalCount,
+  initialPage,
 }: {
   initialBookmarks: Bookmark[];
+  totalCount: number;
+  initialPage: number;
 }) {
   const router = useRouter();
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(initialPage);
   const [bookmarks, setBookmarks] = useState(initialBookmarks);
   const [newBookmark, setNewBookmark] = useState({
     url: "",
@@ -102,35 +106,21 @@ export default function BookmarksClient({
     toast.success("Bookmark deleted successfully");
   };
 
-  const filteredBookmarks = useMemo(() => {
-    const keyword = filterKeyword.trim().toLowerCase();
-
-    return bookmarks.filter((bookmark) => {
-      const matchesStatus =
-        filterStatus === "all" || bookmark.status === filterStatus;
-
-      const matchesKeyword =
-        !keyword ||
-        bookmark.title.toLowerCase().includes(keyword) ||
-        bookmark.keywords.some((k) => k.toLowerCase().includes(keyword));
-
-      return matchesStatus && matchesKeyword;
-    });
-  }, [bookmarks, filterStatus, filterKeyword]);
-
   const applyFilters = (status: string, keyword: string) => {
     const params = new URLSearchParams();
-
     if (status !== "all") params.set("status", status);
     if (keyword) params.set("q", keyword);
-
+    params.set("page", "0"); // reset page on filter change
     router.push(`/bookmarks?${params.toString()}`);
   };
 
-  const paginatedBookmarks = filteredBookmarks.slice(
-    page * PAGE_SIZE,
-    (page + 1) * PAGE_SIZE,
-  );
+  const applyPage = (newPage: number) => {
+    const params = new URLSearchParams();
+    params.set("page", String(newPage));
+    if (filterStatus !== "all") params.set("status", filterStatus);
+    if (filterKeyword) params.set("q", filterKeyword);
+    router.push(`/bookmarks?${params.toString()}`);
+  };
 
   const handleUpdateBookmark = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -161,19 +151,13 @@ export default function BookmarksClient({
     setIsEditDialogOpen(false);
   };
 
-  const statusColors = {
-    not_visited: "bg-yellow-100 text-yellow-800",
-    visited: "bg-green-100 text-green-800",
-    revisit: "bg-blue-100 text-blue-800",
-  };
-
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 py-8">
       <div className="max-w-7xl mx-auto px-4">
+        {/* Add Bookmark Dialog + Filters (unchanged) */}
         <div className="mb-8 flex items-center justify-between">
           <h1 className="text-4xl font-bold">Bookmark Manager</h1>
-
-          {/* Add Bookmark Dialog */}
+          {/* Add Bookmark Dialog (same as before) */}
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
               <Button className="gap-2">
@@ -181,7 +165,6 @@ export default function BookmarksClient({
                 Add Bookmark
               </Button>
             </DialogTrigger>
-
             <DialogContent>
               <form onSubmit={handleAddBookmark}>
                 <DialogHeader>
@@ -289,37 +272,37 @@ export default function BookmarksClient({
           </div>
         </div>
 
-        {/* Bookmarks List */}
+        {/* Bookmarks List (no slice, use server-side pagination) */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {paginatedBookmarks.map((bookmark) => {
-            return (
-              <BookmarkCard
-                key={bookmark.id}
-                bookmark={bookmark}
-                onEdit={(b) => {
-                  setEditingBookmark(b);
-                  setIsEditDialogOpen(true);
-                }}
-                onDelete={handleDeleteBookmark}
-              ></BookmarkCard>
-            );
-          })}
+          {bookmarks.map((bookmark) => (
+            <BookmarkCard
+              key={bookmark.id}
+              bookmark={bookmark}
+              onEdit={(b) => {
+                setEditingBookmark(b);
+                setIsEditDialogOpen(true);
+              }}
+              onDelete={handleDeleteBookmark}
+            />
+          ))}
         </div>
 
+        {/* Pagination */}
         <div className="flex justify-center gap-4 mt-8">
-          <Button disabled={page === 0} onClick={() => setPage((p) => p - 1)}>
+          <Button disabled={page === 0} onClick={() => applyPage(page - 1)}>
             Previous
           </Button>
 
           <Button
-            disabled={(page + 1) * PAGE_SIZE >= filteredBookmarks.length}
-            onClick={() => setPage((p) => p + 1)}
+            disabled={(page + 1) * PAGE_SIZE >= totalCount} // totalCount from server
+            onClick={() => applyPage(page + 1)}
           >
             Next
           </Button>
         </div>
       </div>
-      {/* Edit Bookmark Dialog (GLOBAL) */}
+
+      {/* Edit Bookmark Dialog (GLOBAL) unchanged */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
           {editingBookmark && (

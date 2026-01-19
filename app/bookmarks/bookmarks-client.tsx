@@ -46,6 +46,7 @@ import { BookmarkPlus, Edit2, ExternalLink, Trash2 } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import { toast } from "sonner";
 import BookmarkCard from "./bookmark-card";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const PAGE_SIZE = 20;
 
@@ -54,6 +55,7 @@ export default function BookmarksClient({
 }: {
   initialBookmarks: Bookmark[];
 }) {
+  const router = useRouter();
   const [page, setPage] = useState(0);
   const [bookmarks, setBookmarks] = useState(initialBookmarks);
   const [newBookmark, setNewBookmark] = useState({
@@ -135,6 +137,15 @@ export default function BookmarksClient({
       return matchesStatus && matchesKeyword;
     });
   }, [bookmarks, filterStatus, filterKeyword]);
+
+  const applyFilters = (status: string, keyword: string) => {
+    const params = new URLSearchParams();
+
+    if (status !== "all") params.set("status", status);
+    if (keyword) params.set("q", keyword);
+
+    router.push(`/bookmarks?${params.toString()}`);
+  };
 
   const paginatedBookmarks = filteredBookmarks.slice(
     page * PAGE_SIZE,
@@ -268,7 +279,13 @@ export default function BookmarksClient({
         {/* Filters */}
         <div className="mb-6 flex gap-4">
           <div className="w-48">
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <Select
+              value={filterStatus}
+              onValueChange={(value) => {
+                setFilterStatus(value);
+                applyFilters(value, filterKeyword);
+              }}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
@@ -284,7 +301,10 @@ export default function BookmarksClient({
             <Input
               placeholder="Filter by keyword..."
               value={filterKeyword}
-              onChange={(e) => setFilterKeyword(e.target.value)}
+              onChange={(e) => {
+                setFilterKeyword(e.target.value);
+                applyFilters(filterStatus, e.target.value);
+              }}
             />
           </div>
         </div>

@@ -43,7 +43,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/lib/supabase";
 import { Bookmark } from "@/lib/types";
 import { BookmarkPlus, Edit2, ExternalLink, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { toast } from "sonner";
 
 export default function BookmarksClient({
@@ -116,37 +116,35 @@ export default function BookmarksClient({
     toast.success("Bookmark deleted successfully");
   };
 
-  const filteredBookmarks = bookmarks.filter((bookmark) => {
-    const matchesStatus =
-      filterStatus === "all" || bookmark.status === filterStatus;
-    const matchesKeyword =
-      !filterKeyword ||
-      bookmark.keywords.some((k) =>
-        k.toLowerCase().includes(filterKeyword.toLowerCase()),
-      ) ||
-      bookmark.title.toLowerCase().includes(filterKeyword.toLowerCase());
-    return matchesStatus && matchesKeyword;
-  });
+  const filteredBookmarks = useMemo(() => {
+    const keyword = filterKeyword.trim().toLowerCase();
+
+    return bookmarks.filter((bookmark) => {
+      const matchesStatus =
+        filterStatus === "all" || bookmark.status === filterStatus;
+
+      const matchesKeyword =
+        !keyword ||
+        bookmark.title.toLowerCase().includes(keyword) ||
+        bookmark.keywords.some((k) => k.toLowerCase().includes(keyword));
+
+      return matchesStatus && matchesKeyword;
+    });
+  }, [bookmarks, filterStatus, filterKeyword]);
 
   const handleUpdateBookmark = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-
-    if (!editingBookmark || !editingBookmark.id) {
-      toast.error("Invalid bookmark data");
-      return;
-    }
+    if (!editingBookmark?.id) return;
 
     const keywords = editingBookmark.keywords
       .map((k) => k.trim())
-      .filter((k) => k);
+      .filter(Boolean);
 
-    const { id, ...updateFields } = editingBookmark;
+    const { id, ...rest } = editingBookmark;
+
     const { error } = await supabase
       .from("bookmarks")
-      .update({
-        ...updateFields,
-        keywords,
-      })
+      .update({ ...rest, keywords })
       .eq("id", id);
 
     if (error) {
@@ -154,10 +152,13 @@ export default function BookmarksClient({
       return;
     }
 
+    setBookmarks((prev) =>
+      prev.map((b) => (b.id === id ? { ...editingBookmark, keywords } : b)),
+    );
+
     toast.success("Bookmark updated successfully");
-    setIsEditDialogOpen(false);
     setEditingBookmark(null);
-    fetchBookmarks();
+    setIsEditDialogOpen(false);
   };
 
   const statusColors = {

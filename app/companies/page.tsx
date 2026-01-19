@@ -57,7 +57,7 @@ export default function CompaniesPage() {
     }
 
     const companyExists = companies.some(
-      (company) => company.name.toLowerCase() === newCompanyName.toLowerCase()
+      (company) => company.name.toLowerCase() === newCompanyName.toLowerCase(),
     );
 
     if (companyExists) {

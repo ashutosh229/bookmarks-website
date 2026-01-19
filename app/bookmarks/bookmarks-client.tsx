@@ -1,26 +1,6 @@
 "use client";
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -42,8 +22,8 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/lib/supabase";
 import { Bookmark } from "@/lib/types";
-import { BookmarkPlus, Edit2, ExternalLink, Trash2 } from "lucide-react";
-import { useEffect, useState, useMemo } from "react";
+import { BookmarkPlus } from "lucide-react";
+import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import BookmarkCard from "./bookmark-card";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -316,7 +296,10 @@ export default function BookmarksClient({
               <BookmarkCard
                 key={bookmark.id}
                 bookmark={bookmark}
-                onEdit={setEditingBookmark}
+                onEdit={(b) => {
+                  setEditingBookmark(b);
+                  setIsEditDialogOpen(true);
+                }}
                 onDelete={handleDeleteBookmark}
               ></BookmarkCard>
             );
@@ -336,6 +319,79 @@ export default function BookmarksClient({
           </Button>
         </div>
       </div>
+      {/* Edit Bookmark Dialog (GLOBAL) */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          {editingBookmark && (
+            <form onSubmit={handleUpdateBookmark}>
+              <DialogHeader>
+                <DialogTitle>Edit Bookmark</DialogTitle>
+                <DialogDescription>Update bookmark details</DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-4">
+                <div>
+                  <Label>URL</Label>
+                  <Input
+                    value={editingBookmark.url}
+                    onChange={(e) =>
+                      setEditingBookmark({
+                        ...editingBookmark,
+                        url: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+
+                <div>
+                  <Label>Title</Label>
+                  <Input
+                    value={editingBookmark.title}
+                    onChange={(e) =>
+                      setEditingBookmark({
+                        ...editingBookmark,
+                        title: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+
+                <div>
+                  <Label>Keywords (comma separated)</Label>
+                  <Input
+                    value={editingBookmark.keywords.join(", ")}
+                    onChange={(e) =>
+                      setEditingBookmark({
+                        ...editingBookmark,
+                        keywords: e.target.value
+                          .split(",")
+                          .map((k) => k.trim()),
+                      })
+                    }
+                  />
+                </div>
+
+                <div>
+                  <Label>Comment</Label>
+                  <Textarea
+                    value={editingBookmark.comment || ""}
+                    onChange={(e) =>
+                      setEditingBookmark({
+                        ...editingBookmark,
+                        comment: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+              </div>
+
+              <DialogFooter>
+                <Button type="submit">Save Changes</Button>
+              </DialogFooter>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

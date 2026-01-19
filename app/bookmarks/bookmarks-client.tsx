@@ -133,6 +133,8 @@ export default function BookmarksClient({
     });
   }, [bookmarks, filterStatus, filterKeyword]);
 
+  const visibleBookmarks = filteredBookmarks.slice(0, 50);
+
   const handleUpdateBookmark = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!editingBookmark?.id) return;
@@ -283,7 +285,7 @@ export default function BookmarksClient({
 
         {/* Bookmarks List */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredBookmarks.map((bookmark) => {
+          {visibleBookmarks.map((bookmark) => {
             return (
               <BookmarkCard
                 key={bookmark.id}

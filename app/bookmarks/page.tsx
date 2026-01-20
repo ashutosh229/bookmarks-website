@@ -33,10 +33,8 @@ export default async function BookmarksPage({
   }
 
   const { data, count } = await query;
-  
 
   return (
-    {console.log("total count:", count);}
     <BookmarksClient
       initialBookmarks={data ?? []}
       totalCount={count ?? 0} // pass total count for pagination

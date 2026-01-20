@@ -121,13 +121,16 @@ export default function BookmarksClient({
     if (keyword) params.set("q", keyword);
     else params.delete("q");
     params.set("page", "0"); // reset page on filter change
+
     router.push(`/bookmarks?${params.toString()}`);
+    router.refresh(); // 🔑 force server component to rerun
   };
 
   const applyPage = (newPage: number) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("page", String(newPage));
     router.push(`/bookmarks?${params.toString()}`);
+    router.refresh(); // 🔑 force server component to rerun
   };
 
   const handleUpdateBookmark = async (e?: React.FormEvent) => {

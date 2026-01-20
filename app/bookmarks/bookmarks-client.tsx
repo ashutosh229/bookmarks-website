@@ -23,10 +23,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/lib/supabase";
 import { Bookmark } from "@/lib/types";
 import { BookmarkPlus } from "lucide-react";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import BookmarkCard from "./bookmark-card";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const PAGE_SIZE = 20;
 
@@ -40,7 +40,8 @@ export default function BookmarksClient({
   initialPage: number;
 }) {
   const router = useRouter();
-  const [page, setPage] = useState(initialPage);
+  const searchParams = useSearchParams();
+
   const [bookmarks, setBookmarks] = useState(initialBookmarks);
   const [newBookmark, setNewBookmark] = useState({
     url: "",
@@ -56,10 +57,13 @@ export default function BookmarksClient({
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
+  // read page from URL search params
+  const page = Number(searchParams.get("page") || 0);
+
+  // sync bookmarks whenever server re-renders
   useEffect(() => {
-    setPage(initialPage);
     setBookmarks(initialBookmarks);
-  }, [initialPage, initialBookmarks]);
+  }, [initialBookmarks]);
 
   const handleAddBookmark = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -85,9 +89,9 @@ export default function BookmarksClient({
       return;
     }
 
-    setBookmarks((prev) => [data, ...prev]); // 🚀 instant UI
-
+    setBookmarks((prev) => [data, ...prev]);
     toast.success("Bookmark added successfully");
+
     setNewBookmark({
       url: "",
       title: "",
@@ -106,24 +110,23 @@ export default function BookmarksClient({
       return;
     }
 
-    setBookmarks((prev) => prev.filter((b) => b.id !== id)); // 🚀
-
+    setBookmarks((prev) => prev.filter((b) => b.id !== id));
     toast.success("Bookmark deleted successfully");
   };
 
   const applyFilters = (status: string, keyword: string) => {
-    const params = new URLSearchParams();
+    const params = new URLSearchParams(searchParams.toString());
     if (status !== "all") params.set("status", status);
+    else params.delete("status");
     if (keyword) params.set("q", keyword);
+    else params.delete("q");
     params.set("page", "0"); // reset page on filter change
     router.push(`/bookmarks?${params.toString()}`);
   };
 
   const applyPage = (newPage: number) => {
-    const params = new URLSearchParams();
+    const params = new URLSearchParams(searchParams.toString());
     params.set("page", String(newPage));
-    if (filterStatus !== "all") params.set("status", filterStatus);
-    if (filterKeyword) params.set("q", filterKeyword);
     router.push(`/bookmarks?${params.toString()}`);
   };
 
@@ -159,10 +162,10 @@ export default function BookmarksClient({
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 py-8">
       <div className="max-w-7xl mx-auto px-4">
-        {/* Add Bookmark Dialog + Filters (unchanged) */}
+        {/* Header + Add Dialog */}
         <div className="mb-8 flex items-center justify-between">
           <h1 className="text-4xl font-bold">Bookmark Manager</h1>
-          {/* Add Bookmark Dialog (same as before) */}
+
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
               <Button className="gap-2">
@@ -277,7 +280,7 @@ export default function BookmarksClient({
           </div>
         </div>
 
-        {/* Bookmarks List (no slice, use server-side pagination) */}
+        {/* Bookmarks List */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {bookmarks.map((bookmark) => (
             <BookmarkCard
@@ -299,7 +302,7 @@ export default function BookmarksClient({
           </Button>
 
           <Button
-            disabled={(page + 1) * PAGE_SIZE >= totalCount} // totalCount from server
+            disabled={(page + 1) * PAGE_SIZE >= totalCount}
             onClick={() => applyPage(page + 1)}
           >
             Next
@@ -307,7 +310,7 @@ export default function BookmarksClient({
         </div>
       </div>
 
-      {/* Edit Bookmark Dialog (GLOBAL) unchanged */}
+      {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
           {editingBookmark && (

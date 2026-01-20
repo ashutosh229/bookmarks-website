@@ -57,7 +57,7 @@ export default function BookmarksClient({
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
-  // read page from URL search params
+  // read current page from URL
   const page = Number(searchParams.get("page") || 0);
 
   // sync bookmarks whenever server re-renders
@@ -65,9 +65,9 @@ export default function BookmarksClient({
     setBookmarks(initialBookmarks);
   }, [initialBookmarks]);
 
+  // Add bookmark
   const handleAddBookmark = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-
     if (!newBookmark.url.trim()) {
       toast.error("URL is required");
       return;
@@ -84,10 +84,7 @@ export default function BookmarksClient({
       .select()
       .single();
 
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
+    if (error) return toast.error(error.message);
 
     setBookmarks((prev) => [data, ...prev]);
     toast.success("Bookmark added successfully");
@@ -102,37 +99,16 @@ export default function BookmarksClient({
     setIsAddDialogOpen(false);
   };
 
+  // Delete bookmark
   const handleDeleteBookmark = async (id: string) => {
     const { error } = await supabase.from("bookmarks").delete().eq("id", id);
-
-    if (error) {
-      toast.error("Error deleting bookmark");
-      return;
-    }
+    if (error) return toast.error("Error deleting bookmark");
 
     setBookmarks((prev) => prev.filter((b) => b.id !== id));
     toast.success("Bookmark deleted successfully");
   };
 
-  const applyFilters = (status: string, keyword: string) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (status !== "all") params.set("status", status);
-    else params.delete("status");
-    if (keyword) params.set("q", keyword);
-    else params.delete("q");
-    params.set("page", "0"); // reset page on filter change
-
-    router.push(`/bookmarks?${params.toString()}`);
-    router.refresh(); // 🔑 force server component to rerun
-  };
-
-  const applyPage = (newPage: number) => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("page", String(newPage));
-    router.push(`/bookmarks?${params.toString()}`);
-    router.refresh(); // 🔑 force server component to rerun
-  };
-
+  // Update bookmark
   const handleUpdateBookmark = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!editingBookmark?.id) return;
@@ -148,10 +124,7 @@ export default function BookmarksClient({
       .update({ ...rest, keywords })
       .eq("id", id);
 
-    if (error) {
-      toast.error("Error updating bookmark");
-      return;
-    }
+    if (error) return toast.error("Error updating bookmark");
 
     setBookmarks((prev) =>
       prev.map((b) => (b.id === id ? { ...editingBookmark, keywords } : b)),
@@ -160,6 +133,24 @@ export default function BookmarksClient({
     toast.success("Bookmark updated successfully");
     setEditingBookmark(null);
     setIsEditDialogOpen(false);
+  };
+
+  // Apply filters
+  const applyFilters = (status: string, keyword: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (status !== "all") params.set("status", status);
+    else params.delete("status");
+    if (keyword) params.set("q", keyword);
+    else params.delete("q");
+    params.set("page", "0"); // reset page on filter change
+    router.push(`/bookmarks?${params.toString()}`);
+  };
+
+  // Apply pagination
+  const applyPage = (newPage: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", String(newPage));
+    router.push(`/bookmarks?${params.toString()}`);
   };
 
   return (
@@ -303,7 +294,6 @@ export default function BookmarksClient({
           <Button disabled={page === 0} onClick={() => applyPage(page - 1)}>
             Previous
           </Button>
-
           <Button
             disabled={(page + 1) * PAGE_SIZE >= totalCount}
             onClick={() => applyPage(page + 1)}

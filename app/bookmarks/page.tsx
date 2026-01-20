@@ -2,18 +2,19 @@ import { supabase } from "@/lib/supabase";
 import BookmarksClient from "./bookmarks-client";
 
 export const revalidate = 60;
+export const dynamic = "force-dynamic"; // 🔥 important to fix Vercel build
 
 export default async function BookmarksPage({
   searchParams,
 }: {
-  searchParams: {
+  searchParams?: {
     page?: number;
     status?: string;
     q?: string;
   };
 }) {
   const PAGE_SIZE = 20;
-  const page = Number(searchParams.page || 0);
+  const page = Number(searchParams?.page ?? 0);
   const from = page * PAGE_SIZE;
   const to = (page + 1) * PAGE_SIZE - 1;
 
@@ -23,10 +24,10 @@ export default async function BookmarksPage({
     .order("created_at", { ascending: false })
     .range(from, to);
 
-  if (searchParams.status && searchParams.status !== "all") {
+  if (searchParams?.status && searchParams.status !== "all") {
     query = query.eq("status", searchParams.status);
   }
-  if (searchParams.q) {
+  if (searchParams?.q) {
     query = query.or(
       `title.ilike.%${searchParams.q}%,keywords.cs.{${searchParams.q}}`,
     );
@@ -37,8 +38,8 @@ export default async function BookmarksPage({
   return (
     <BookmarksClient
       initialBookmarks={data ?? []}
-      totalCount={count ?? 0} // pass total count for pagination
-      initialPage={page} // pass current page
+      totalCount={count ?? 0}
+      initialPage={page}
     />
   );
 }

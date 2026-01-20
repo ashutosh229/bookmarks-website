@@ -23,7 +23,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/lib/supabase";
 import { Bookmark } from "@/lib/types";
 import { BookmarkPlus } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { toast } from "sonner";
 import BookmarkCard from "./bookmark-card";
 import { useRouter } from "next/navigation";
@@ -55,6 +55,11 @@ export default function BookmarksClient({
   const [filterKeyword, setFilterKeyword] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
+  useEffect(() => {
+    setPage(initialPage);
+    setBookmarks(initialBookmarks);
+  }, [initialPage, initialBookmarks]);
 
   const handleAddBookmark = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();

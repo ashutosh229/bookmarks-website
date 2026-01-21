@@ -1,14 +1,14 @@
 const services = [
-  {
-    name: "Marks Tracker",
-    link: "/marks",
-    description: "Track and manage your academic performance easily.",
-  },
-  {
-    name: "Expenses Tracker",
-    link: "/expenses-tracker",
-    description: "Monitor your expenses and manage finances effectively.",
-  },
+  // {
+  //   name: "Marks Tracker",
+  //   link: "/marks",
+  //   description: "Track and manage your academic performance easily.",
+  // },
+  // {
+  //   name: "Expenses Tracker",
+  //   link: "/expenses-tracker",
+  //   description: "Monitor your expenses and manage finances effectively.",
+  // },
   {
     name: "Bookmarker",
     link: "/bookmarks",

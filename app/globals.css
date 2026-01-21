@@ -80,3 +80,39 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer base {
+  html,
+  body {
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  img,
+  video,
+  canvas,
+  svg {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+@layer base {
+  body {
+    font-size: clamp(14px, 2.5vw, 16px);
+  }
+
+  h1 {
+    font-size: clamp(24px, 6vw, 40px);
+  }
+
+  h2 {
+    font-size: clamp(20px, 5vw, 32px);
+  }
+}
+
+@media (max-width: 768px) {
+  .flex {
+    flex-wrap: wrap;
+  }
+}

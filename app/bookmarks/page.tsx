@@ -1,20 +1,31 @@
 import { supabase } from "@/lib/supabase";
 import BookmarksClient from "./bookmarks-client";
 
-export const revalidate = 60;
-export const dynamic = "force-dynamic"; // ensures server re-renders on each request
+export const revalidate = 0; // Disable caching
+export const dynamic = "force-dynamic"; // Ensures server re-renders on each request
+
+const PAGE_SIZE = 20;
 
 export default async function BookmarksPage({
   searchParams,
 }: {
-  searchParams?: {
-    page?: string;
-    status?: string;
-    q?: string;
-  };
+  searchParams?:
+    | Promise<{
+        page?: string;
+        status?: string;
+        q?: string;
+      }>
+    | {
+        page?: string;
+        status?: string;
+        q?: string;
+      };
 }) {
-  const PAGE_SIZE = 20;
-  const page = Number(searchParams?.page ?? "0");
+  // Await searchParams if it's a promise (Next.js 15+)
+  const params =
+    searchParams instanceof Promise ? await searchParams : searchParams;
+
+  const page = Number(params?.page ?? "0");
   const offset = page * PAGE_SIZE;
 
   let query = supabase
@@ -23,19 +34,37 @@ export default async function BookmarksPage({
     .order("created_at", { ascending: false });
 
   // Apply status filter
-  if (searchParams?.status && searchParams.status !== "all") {
-    query = query.eq("status", searchParams.status);
+  if (params?.status && params.status !== "all") {
+    query = query.eq("status", params.status);
   }
 
   // Apply keyword search filter
-  if (searchParams?.q) {
-    query = query.or(
-      `title.ilike.%${searchParams.q}%,keywords.cs.{${searchParams.q}}`,
-    );
+  if (params?.q) {
+    const keyword = params.q.trim();
+    // Search in title and keywords array
+    query = query.or(`title.ilike.%${keyword}%,keywords.cs.{${keyword}}`);
   }
 
-  // Use offset + limit for pagination
-  const { data, count } = await query.range(offset, offset + PAGE_SIZE - 1);
+  // Apply pagination using range
+  const { data, count, error } = await query.range(
+    offset,
+    offset + PAGE_SIZE - 1,
+  );
+
+  if (error) {
+    console.error("Error fetching bookmarks:", error);
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 py-8">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="text-center py-12">
+            <p className="text-red-500 text-lg">
+              Error loading bookmarks. Please try again later.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <BookmarksClient

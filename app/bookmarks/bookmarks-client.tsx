@@ -43,27 +43,43 @@ export default function BookmarksClient({
   const searchParams = useSearchParams();
 
   const [bookmarks, setBookmarks] = useState(initialBookmarks);
-  const [newBookmark, setNewBookmark] = useState({
+  const [newBookmark, setNewBookmark] = useState<{
+    url: string;
+    title: string;
+    keywords: string;
+    comment: string;
+    status: "not_visited" | "visited" | "revisit";
+  }>({
     url: "",
     title: "",
     keywords: "",
     comment: "",
-    status: "not_visited" as const,
+    status: "not_visited",
   });
 
   const [editingBookmark, setEditingBookmark] = useState<Bookmark | null>(null);
-  const [filterStatus, setFilterStatus] = useState<string>("all");
-  const [filterKeyword, setFilterKeyword] = useState("");
+  const [filterStatus, setFilterStatus] = useState<string>(
+    searchParams.get("status") || "all",
+  );
+  const [filterKeyword, setFilterKeyword] = useState(
+    searchParams.get("q") || "",
+  );
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
-  // read current page from URL
-  const page = Number(searchParams.get("page") || 0);
+  // Read current page from URL
+  const currentPage = Number(searchParams.get("page") || "0");
 
-  // sync bookmarks whenever server re-renders
+  // Sync bookmarks whenever server re-renders
   useEffect(() => {
     setBookmarks(initialBookmarks);
   }, [initialBookmarks]);
+
+  // Sync filter states with URL params
+  useEffect(() => {
+    setFilterStatus(searchParams.get("status") || "all");
+    setFilterKeyword(searchParams.get("q") || "");
+  }, [searchParams]);
 
   // Add bookmark
   const handleAddBookmark = async (e?: React.FormEvent) => {
@@ -84,9 +100,13 @@ export default function BookmarksClient({
       .select()
       .single();
 
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
 
-    setBookmarks((prev) => [data, ...prev]);
+    // Refresh the page to get updated data from server
+    router.refresh();
     toast.success("Bookmark added successfully");
 
     setNewBookmark({
@@ -102,9 +122,13 @@ export default function BookmarksClient({
   // Delete bookmark
   const handleDeleteBookmark = async (id: string) => {
     const { error } = await supabase.from("bookmarks").delete().eq("id", id);
-    if (error) return toast.error("Error deleting bookmark");
+    if (error) {
+      toast.error("Error deleting bookmark");
+      return;
+    }
 
-    setBookmarks((prev) => prev.filter((b) => b.id !== id));
+    // Refresh the page to get updated data from server
+    router.refresh();
     toast.success("Bookmark deleted successfully");
   };
 
@@ -124,12 +148,13 @@ export default function BookmarksClient({
       .update({ ...rest, keywords })
       .eq("id", id);
 
-    if (error) return toast.error("Error updating bookmark");
+    if (error) {
+      toast.error("Error updating bookmark");
+      return;
+    }
 
-    setBookmarks((prev) =>
-      prev.map((b) => (b.id === id ? { ...editingBookmark, keywords } : b)),
-    );
-
+    // Refresh the page to get updated data from server
+    router.refresh();
     toast.success("Bookmark updated successfully");
     setEditingBookmark(null);
     setIsEditDialogOpen(false);
@@ -137,11 +162,9 @@ export default function BookmarksClient({
 
   // Apply filters
   const applyFilters = (status: string, keyword: string) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (status !== "all") params.set("status", status);
-    else params.delete("status");
+    const params = new URLSearchParams();
+    if (status && status !== "all") params.set("status", status);
     if (keyword) params.set("q", keyword);
-    else params.delete("q");
     params.set("page", "0"); // reset page on filter change
     router.push(`/bookmarks?${params.toString()}`);
   };
@@ -152,6 +175,8 @@ export default function BookmarksClient({
     params.set("page", String(newPage));
     router.push(`/bookmarks?${params.toString()}`);
   };
+
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 py-8">
@@ -177,7 +202,7 @@ export default function BookmarksClient({
                   </DialogDescription>
                 </DialogHeader>
 
-                <div className="space-y-4">
+                <div className="space-y-4 py-4">
                   <div>
                     <Label htmlFor="url">URL</Label>
                     <Input
@@ -187,6 +212,7 @@ export default function BookmarksClient({
                         setNewBookmark({ ...newBookmark, url: e.target.value })
                       }
                       placeholder="https://example.com"
+                      required
                     />
                   </div>
                   <div>
@@ -231,6 +257,24 @@ export default function BookmarksClient({
                       placeholder="Add your notes here..."
                     />
                   </div>
+                  <div>
+                    <Label htmlFor="status">Status</Label>
+                    <Select
+                      value={newBookmark.status}
+                      onValueChange={(
+                        value: "not_visited" | "visited" | "revisit",
+                      ) => setNewBookmark({ ...newBookmark, status: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="not_visited">Not Visited</SelectItem>
+                        <SelectItem value="visited">Visited</SelectItem>
+                        <SelectItem value="revisit">Revisit</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 <DialogFooter>
@@ -268,39 +312,73 @@ export default function BookmarksClient({
               value={filterKeyword}
               onChange={(e) => {
                 setFilterKeyword(e.target.value);
-                applyFilters(filterStatus, e.target.value);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  applyFilters(filterStatus, filterKeyword);
+                }
               }}
             />
           </div>
+          <Button
+            onClick={() => applyFilters(filterStatus, filterKeyword)}
+            variant="secondary"
+          >
+            Apply
+          </Button>
+        </div>
+
+        {/* Stats */}
+        <div className="mb-4 text-sm text-gray-600 dark:text-gray-400">
+          Showing {bookmarks.length} of {totalCount} bookmarks
+          {currentPage > 0 && ` (Page ${currentPage + 1} of ${totalPages})`}
         </div>
 
         {/* Bookmarks List */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {bookmarks.map((bookmark) => (
-            <BookmarkCard
-              key={bookmark.id}
-              bookmark={bookmark}
-              onEdit={(b) => {
-                setEditingBookmark(b);
-                setIsEditDialogOpen(true);
-              }}
-              onDelete={handleDeleteBookmark}
-            />
-          ))}
-        </div>
+        {bookmarks.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-500 dark:text-gray-400 text-lg">
+              No bookmarks found. Add your first bookmark to get started!
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {bookmarks.map((bookmark) => (
+              <BookmarkCard
+                key={bookmark.id}
+                bookmark={bookmark}
+                onEdit={(b) => {
+                  setEditingBookmark(b);
+                  setIsEditDialogOpen(true);
+                }}
+                onDelete={handleDeleteBookmark}
+              />
+            ))}
+          </div>
+        )}
 
         {/* Pagination */}
-        <div className="flex justify-center gap-4 mt-8">
-          <Button disabled={page === 0} onClick={() => applyPage(page - 1)}>
-            Previous
-          </Button>
-          <Button
-            disabled={(page + 1) * PAGE_SIZE >= totalCount}
-            onClick={() => applyPage(page + 1)}
-          >
-            Next
-          </Button>
-        </div>
+        {totalCount > PAGE_SIZE && (
+          <div className="flex justify-center items-center gap-4 mt-8">
+            <Button
+              disabled={currentPage === 0}
+              onClick={() => applyPage(currentPage - 1)}
+              variant="outline"
+            >
+              Previous
+            </Button>
+            <span className="text-sm text-gray-600 dark:text-gray-400">
+              Page {currentPage + 1} of {totalPages}
+            </span>
+            <Button
+              disabled={currentPage + 1 >= totalPages}
+              onClick={() => applyPage(currentPage + 1)}
+              variant="outline"
+            >
+              Next
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Edit Dialog */}
@@ -313,7 +391,7 @@ export default function BookmarksClient({
                 <DialogDescription>Update bookmark details</DialogDescription>
               </DialogHeader>
 
-              <div className="space-y-4">
+              <div className="space-y-4 py-4">
                 <div>
                   <Label>URL</Label>
                   <Input
@@ -324,6 +402,7 @@ export default function BookmarksClient({
                         url: e.target.value,
                       })
                     }
+                    required
                   />
                 </div>
 
@@ -349,7 +428,8 @@ export default function BookmarksClient({
                         ...editingBookmark,
                         keywords: e.target.value
                           .split(",")
-                          .map((k) => k.trim()),
+                          .map((k) => k.trim())
+                          .filter(Boolean),
                       })
                     }
                   />
@@ -366,6 +446,27 @@ export default function BookmarksClient({
                       })
                     }
                   />
+                </div>
+
+                <div>
+                  <Label>Status</Label>
+                  <Select
+                    value={editingBookmark.status}
+                    onValueChange={(
+                      value: "not_visited" | "visited" | "revisit",
+                    ) =>
+                      setEditingBookmark({ ...editingBookmark, status: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="not_visited">Not Visited</SelectItem>
+                      <SelectItem value="visited">Visited</SelectItem>
+                      <SelectItem value="revisit">Revisit</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 

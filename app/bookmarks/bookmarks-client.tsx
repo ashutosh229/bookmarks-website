@@ -265,7 +265,7 @@ export default function BookmarksClient({
                         value: "not_visited" | "visited" | "revisit",
                       ) => setNewBookmark({ ...newBookmark, status: value })}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger id="status">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -393,8 +393,9 @@ export default function BookmarksClient({
 
               <div className="space-y-4 py-4">
                 <div>
-                  <Label>URL</Label>
+                  <Label htmlFor="edit-url">URL</Label>
                   <Input
+                    id="edit-url"
                     value={editingBookmark.url}
                     onChange={(e) =>
                       setEditingBookmark({
@@ -407,8 +408,9 @@ export default function BookmarksClient({
                 </div>
 
                 <div>
-                  <Label>Title</Label>
+                  <Label htmlFor="edit-title">Title</Label>
                   <Input
+                    id="edit-title"
                     value={editingBookmark.title}
                     onChange={(e) =>
                       setEditingBookmark({
@@ -420,8 +422,11 @@ export default function BookmarksClient({
                 </div>
 
                 <div>
-                  <Label>Keywords (comma separated)</Label>
+                  <Label htmlFor="edit-keywords">
+                    Keywords (comma separated)
+                  </Label>
                   <Input
+                    id="edit-keywords"
                     value={editingBookmark.keywords.join(", ")}
                     onChange={(e) =>
                       setEditingBookmark({
@@ -436,8 +441,9 @@ export default function BookmarksClient({
                 </div>
 
                 <div>
-                  <Label>Comment</Label>
+                  <Label htmlFor="edit-comment">Comment</Label>
                   <Textarea
+                    id="edit-comment"
                     value={editingBookmark.comment || ""}
                     onChange={(e) =>
                       setEditingBookmark({
@@ -449,7 +455,7 @@ export default function BookmarksClient({
                 </div>
 
                 <div>
-                  <Label>Status</Label>
+                  <Label htmlFor="edit-status">Status</Label>
                   <Select
                     value={editingBookmark.status}
                     onValueChange={(
@@ -458,7 +464,7 @@ export default function BookmarksClient({
                       setEditingBookmark({ ...editingBookmark, status: value })
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger id="edit-status">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>

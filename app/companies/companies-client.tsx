@@ -81,7 +81,7 @@ export default function CompaniesClient({
 
   /* ---------------- STATUS ---------------- */
 
-  const toggleStatus = async (company: Company) => {
+  const toggleStatus = useCallback(async (company: Company) => {
     const newStatus = company.status === "sent" ? "unsent" : "sent";
 
     setCompanies((prev) =>
@@ -92,7 +92,7 @@ export default function CompaniesClient({
       .from("companies")
       .update({ status: newStatus })
       .eq("id", company.id);
-  };
+  }, []);
 
   /* ---------------- COMMENTS (DEBOUNCED) ---------------- */
 

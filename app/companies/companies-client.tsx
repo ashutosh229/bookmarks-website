@@ -14,8 +14,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { useRef } from "react";
+import { useRef, useMemo } from "react";
 import CompanyRow from "./company-row";
+import debounce from "lodash.debounce";
 
 interface Company {
   id: string;
@@ -33,8 +34,16 @@ export default function CompaniesClient({
   initialCompanies,
 }: CompaniesClientProps) {
   const [companies, setCompanies] = useState(initialCompanies);
+  const companyIndexMap = useMemo(() => {
+    const map = new Map<string, number>();
+    companies.forEach((c, i) => {
+      map.set(c.name.toLowerCase(), i);
+    });
+    return map;
+  }, [companies]);
+
   const [newCompanyName, setNewCompanyName] = useState("");
-  const { toast } = useToast();
+  const [search, setSearch] = useState("");
   const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>(
     {},
   );
@@ -49,6 +58,8 @@ export default function CompaniesClient({
       return 80;
     },
   });
+
+  const { toast } = useToast();
   /* ---------------- ADD ---------------- */
 
   const handleAddCompany = async (e: React.FormEvent) => {
@@ -106,6 +117,17 @@ export default function CompaniesClient({
     setCommentDrafts({});
   };
 
+  /* ---------------- SEARCH ---------------- */
+  const handleSearch = useCallback(
+    debounce((value: string) => {
+      const index = companyIndexMap.get(value.toLowerCase());
+      if (index !== undefined) {
+        rowVirtualizer.scrollToIndex(index, { align: "center" });
+      }
+    }, 300),
+    [companyIndexMap],
+  );
+
   /* ---------------- UI ---------------- */
 
   return (
@@ -125,6 +147,19 @@ export default function CompaniesClient({
             />
             <Button>Add</Button>
           </form>
+        </CardContent>
+      </Card>
+      <Card className="mb-4">
+        <CardContent className="pt-4">
+          <Input
+            placeholder="Search company (exact name)..."
+            value={search}
+            onChange={(e) => {
+              const value = e.target.value;
+              setSearch(value);
+              handleSearch(value);
+            }}
+          />
         </CardContent>
       </Card>
 

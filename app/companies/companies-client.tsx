@@ -17,6 +17,8 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import debounce from "lodash.debounce";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { useRef } from "react";
 
 interface Company {
   id: string;
@@ -37,6 +39,16 @@ export default function CompaniesClient({
   const [newCompanyName, setNewCompanyName] = useState("");
   const { toast } = useToast();
 
+  const parentRef = useRef<HTMLDivElement>(null);
+  const rowVirtualizer = useVirtualizer({
+    count: companies.length,
+    getScrollElement: () => {
+      return parentRef.current;
+    },
+    estimateSize: () => {
+      return 80;
+    },
+  });
   /* ---------------- ADD ---------------- */
 
   const handleAddCompany = async (e: React.FormEvent) => {
@@ -118,35 +130,43 @@ export default function CompaniesClient({
           <CardTitle>Tracked Companies</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Comments</TableHead>
-              </TableRow>
-            </TableHeader>
-
-            <TableBody>
-              {companies.map((c) => (
-                <TableRow key={c.id}>
-                  <TableCell>{c.name}</TableCell>
-                  <TableCell>
-                    <Switch
-                      checked={c.status === "sent"}
-                      onCheckedChange={() => toggleStatus(c)}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Textarea
-                      defaultValue={c.comments}
-                      onChange={(e) => saveComments(c.id, e.target.value)}
-                    />
-                  </TableCell>
+          <div ref={parentRef} className="h-[600px] overflow-auto">
+            {" "}
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Comments</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+
+              <TableBody>
+                {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                  const company = companies[virtualRow.index];
+                  return (
+                    <TableRow key={company.id}>
+                      <TableCell>{company.name}</TableCell>
+                      <TableCell>
+                        <Switch
+                          checked={company.status === "sent"}
+                          onCheckedChange={() => toggleStatus(company)}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Textarea
+                          defaultValue={company.comments}
+                          onChange={(e) =>
+                            saveComments(company.id, e.target.value)
+                          }
+                        />
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
     </div>

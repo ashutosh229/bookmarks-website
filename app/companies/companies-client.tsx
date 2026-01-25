@@ -182,9 +182,13 @@ export default function CompaniesClient({
               <TableBody>
                 {rowVirtualizer.getVirtualItems().map((virtualRow) => {
                   const company = companies[virtualRow.index];
+                  const isMatch =
+                    search &&
+                    company.name.toLowerCase() === search.toLowerCase();
                   return (
                     <CompanyRow
                       key={company.id}
+                      isMatch={isMatch}
                       company={company}
                       commentValue={
                         commentDrafts[company.id] ?? company.comments

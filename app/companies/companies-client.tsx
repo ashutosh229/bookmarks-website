@@ -38,6 +38,9 @@ export default function CompaniesClient({
   const [companies, setCompanies] = useState(initialCompanies);
   const [newCompanyName, setNewCompanyName] = useState("");
   const { toast } = useToast();
+  const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>(
+    {},
+  );
 
   const parentRef = useRef<HTMLDivElement>(null);
   const rowVirtualizer = useVirtualizer({
@@ -96,12 +99,15 @@ export default function CompaniesClient({
 
   /* ---------------- COMMENTS (DEBOUNCED) ---------------- */
 
-  const saveComments = useCallback(
-    debounce(async (id: string, comments: string) => {
-      await supabase.from("companies").update({ comments }).eq("id", id);
-    }, 600),
-    [],
-  );
+  const saveAllComments = async () => {
+    const updates = Object.entries(commentDrafts).map(([id, comments]) => ({
+      id,
+      comments,
+    }));
+
+    await supabase.from("companies").upsert(updates);
+    setCommentDrafts({});
+  };
 
   /* ---------------- UI ---------------- */
 
@@ -155,9 +161,12 @@ export default function CompaniesClient({
                       </TableCell>
                       <TableCell>
                         <Textarea
-                          defaultValue={company.comments}
+                          value={commentDrafts[company.id] ?? company.comments}
                           onChange={(e) =>
-                            saveComments(company.id, e.target.value)
+                            setCommentDrafts((prev) => ({
+                              ...prev,
+                              [company.id]: e.target.value,
+                            }))
                           }
                         />
                       </TableCell>

@@ -5,20 +5,17 @@ import { supabase } from "@/lib/supabase";
 import {
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import debounce from "lodash.debounce";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useRef } from "react";
+import CompanyRow from "./company-row";
 
 interface Company {
   id: string;
@@ -151,26 +148,20 @@ export default function CompaniesClient({
                 {rowVirtualizer.getVirtualItems().map((virtualRow) => {
                   const company = companies[virtualRow.index];
                   return (
-                    <TableRow key={company.id}>
-                      <TableCell>{company.name}</TableCell>
-                      <TableCell>
-                        <Switch
-                          checked={company.status === "sent"}
-                          onCheckedChange={() => toggleStatus(company)}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Textarea
-                          value={commentDrafts[company.id] ?? company.comments}
-                          onChange={(e) =>
-                            setCommentDrafts((prev) => ({
-                              ...prev,
-                              [company.id]: e.target.value,
-                            }))
-                          }
-                        />
-                      </TableCell>
-                    </TableRow>
+                    <CompanyRow
+                      key={company.id}
+                      company={company}
+                      commentValue={
+                        commentDrafts[company.id] ?? company.comments
+                      }
+                      onToggle={toggleStatus}
+                      onCommentChange={(id, value) =>
+                        setCommentDrafts((prev) => ({
+                          ...prev,
+                          [id]: value,
+                        }))
+                      }
+                    ></CompanyRow>
                   );
                 })}
               </TableBody>

@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import CompaniesClient from "./companies-client";
+import { Suspense } from "react";
 
 export const revalidate = 60;
 
@@ -15,5 +16,9 @@ export default async function CompaniesPage() {
     return <div>Failed to load companies</div>;
   }
 
-  return <CompaniesClient initialCompanies={data ?? []} />;
+  return (
+    <Suspense fallback={<></>}>
+      <CompaniesClient initialCompanies={data ?? []} />
+    </Suspense>
+  );
 }

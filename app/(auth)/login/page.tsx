@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -32,35 +33,44 @@ export default function LoginPage() {
   };
 
   return (
-    <form onSubmit={handleLogin} className="space-y-4">
-      <h1 className="text-xl font-semibold">Login</h1>
+    <div className="space-y-4">
+      <h1 className="text-2xl font-semibold">Login</h1>
 
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-        className="w-full border p-2 rounded"
-      />
+      <form onSubmit={handleLogin} className="space-y-4">
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          className="w-full border p-2 rounded"
+        />
 
-      <input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        required
-        className="w-full border p-2 rounded"
-      />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          className="w-full border p-2 rounded"
+        />
 
-      {error && <p className="text-red-500 text-sm">{error}</p>}
+        {error && <p className="text-red-500 text-sm">{error}</p>}
 
-      <button
-        disabled={loading}
-        className="w-full bg-black text-white p-2 rounded"
-      >
-        {loading ? "Logging in..." : "Login"}
-      </button>
-    </form>
+        <button
+          disabled={loading}
+          className="w-full bg-black text-white p-2 rounded"
+        >
+          {loading ? "Logging in..." : "Login"}
+        </button>
+      </form>
+
+      <p className="text-sm">
+        Don’t have an account?{" "}
+        <Link href="/signup" className="underline text-blue-600">
+          Sign Up
+        </Link>
+      </p>
+    </div>
   );
 }

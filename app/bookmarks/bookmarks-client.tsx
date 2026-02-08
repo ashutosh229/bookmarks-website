@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { supabase } from "@/lib/supabase";
+import { supabaseClient } from "@/lib/supabase-client";
 import { Bookmark } from "@/lib/types";
 import { BookmarkPlus } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -94,7 +94,7 @@ export default function BookmarksClient({
       .map((k) => k.trim())
       .filter(Boolean);
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from("bookmarks")
       .insert([{ ...newBookmark, keywords }])
       .select()
@@ -121,7 +121,10 @@ export default function BookmarksClient({
 
   // Delete bookmark
   const handleDeleteBookmark = async (id: string) => {
-    const { error } = await supabase.from("bookmarks").delete().eq("id", id);
+    const { error } = await supabaseClient
+      .from("bookmarks")
+      .delete()
+      .eq("id", id);
     if (error) {
       toast.error("Error deleting bookmark");
       return;
@@ -143,7 +146,7 @@ export default function BookmarksClient({
 
     const { id, ...rest } = editingBookmark;
 
-    const { error } = await supabase
+    const { error } = await supabaseClient
       .from("bookmarks")
       .update({ ...rest, keywords })
       .eq("id", id);

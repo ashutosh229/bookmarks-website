@@ -24,7 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { supabase } from "@/lib/supabase";
+import { supabaseClient } from "@/lib/supabase-client";
 import { ExamRecord } from "@/lib/types";
 import { useEffect, useState } from "react";
 
@@ -46,18 +46,20 @@ export default function ExamMarksTracker() {
   }, []);
 
   const fetchRecords = async () => {
-    const { data, error } = await supabase.from("exam_records").select("*");
+    const { data, error } = await supabaseClient
+      .from("exam_records")
+      .select("*");
     if (!error) setRecords(data || []);
   };
 
   const deleteCourse = async (course: string) => {
-    await supabase.from("exam_records").delete().eq("course", course);
+    await supabaseClient.from("exam_records").delete().eq("course", course);
     fetchRecords();
   };
 
   const updateRecord = async () => {
     if (!editRecord) return;
-    await supabase
+    await supabaseClient
       .from("exam_records")
       .update(editRecord)
       .eq("id", editRecord.id);
@@ -67,7 +69,9 @@ export default function ExamMarksTracker() {
   };
 
   const addRecord = async () => {
-    const { error } = await supabase.from("exam_records").insert([newRecord]);
+    const { error } = await supabaseClient
+      .from("exam_records")
+      .insert([newRecord]);
     if (!error) {
       setIsDialogOpen(false); // Close the dialog
       setNewRecord({ course: "", examType: "", marks: 0, weightage: 0 });
@@ -81,11 +85,14 @@ export default function ExamMarksTracker() {
       .reduce((total, rec) => total + (rec.marks * rec.weightage) / 100, 0);
   };
 
-  const groupedRecords = records.reduce((acc, record) => {
-    if (!acc[record.course]) acc[record.course] = [];
-    acc[record.course].push(record);
-    return acc;
-  }, {} as Record<string, ExamRecord[]>);
+  const groupedRecords = records.reduce(
+    (acc, record) => {
+      if (!acc[record.course]) acc[record.course] = [];
+      acc[record.course].push(record);
+      return acc;
+    },
+    {} as Record<string, ExamRecord[]>,
+  );
 
   const filteredRecords = filter
     ? records.filter((rec) => rec.course === filter)
@@ -151,7 +158,7 @@ export default function ExamMarksTracker() {
               <SelectItem key={course} value={course}>
                 {course}
               </SelectItem>
-            )
+            ),
           )}
         </SelectContent>
       </Select>

@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { supabase } from "@/lib/supabase";
+import { supabaseClient } from "@/lib/supabase-client";
 import { DueRecord, ExpenseRecord, IncomeRecord } from "@/lib/types";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { useEffect, useState } from "react";
@@ -36,9 +36,11 @@ export default function ExpenseTracker() {
   }, []);
 
   const fetchRecords = async () => {
-    const { data: expenses } = await supabase.from("expenses").select("*");
-    const { data: income } = await supabase.from("income").select("*");
-    const { data: dues } = await supabase.from("dues").select("*");
+    const { data: expenses } = await supabaseClient
+      .from("expenses")
+      .select("*");
+    const { data: income } = await supabaseClient.from("income").select("*");
+    const { data: dues } = await supabaseClient.from("dues").select("*");
 
     if (expenses) setExpenses(expenses);
     if (income) setIncome(income);
@@ -46,19 +48,19 @@ export default function ExpenseTracker() {
   };
 
   const addExpense = async () => {
-    await supabase.from("expenses").insert([newExpense]);
+    await supabaseClient.from("expenses").insert([newExpense]);
     setNewExpense({ amount: 0, description: "", includeInTotal: true });
     fetchRecords();
   };
 
   const addIncome = async () => {
-    await supabase.from("income").insert([newIncome]);
+    await supabaseClient.from("income").insert([newIncome]);
     setNewIncome({ amount: 0, description: "" });
     fetchRecords();
   };
 
   const addDue = async () => {
-    await supabase.from("dues").insert([newDue]);
+    await supabaseClient.from("dues").insert([newDue]);
     setNewDue({
       amount: 0,
       description: "",
@@ -72,20 +74,20 @@ export default function ExpenseTracker() {
   const totalIncome = income.reduce((acc, item) => acc + item.amount, 0);
   const totalExpenseIncluded = expenses.reduce(
     (acc, item) => (item.includeInTotal ? acc + item.amount : acc),
-    0
+    0,
   );
   const totalExpenseExcluded = expenses.reduce(
     (acc, item) => (!item.includeInTotal ? acc + item.amount : acc),
-    0
+    0,
   );
   const totalExpense = totalExpenseIncluded + totalExpenseExcluded;
   const totalOptionalDue = dues.reduce(
     (acc, item) => (item.isOptional ? acc + item.amount : acc),
-    0
+    0,
   );
   const totalNonOptionalDue = dues.reduce(
     (acc, item) => (!item.isOptional ? acc + item.amount : acc),
-    0
+    0,
   );
   const totalDue = totalOptionalDue + totalNonOptionalDue;
 

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card } from "@/components/ui/card";
-import { supabase } from "@/lib/supabase";
+import { supabaseClient } from "@/lib/supabase-client";
 import { Todo } from "@/lib/types";
 import {
   Select,
@@ -38,7 +38,7 @@ export default function TodosPage() {
   }, [selectedList]);
 
   async function fetchTodos() {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from("todos")
       .select("*")
       .eq("list_name", selectedList)
@@ -48,7 +48,7 @@ export default function TodosPage() {
 
   async function addTodo() {
     if (!newTask.trim()) return;
-    await supabase
+    await supabaseClient
       .from("todos")
       .insert({ task: newTask.trim(), list_name: selectedList });
     setNewTask("");
@@ -56,12 +56,12 @@ export default function TodosPage() {
   }
 
   async function toggleDone(id: string, done: boolean) {
-    await supabase.from("todos").update({ done: !done }).eq("id", id);
+    await supabaseClient.from("todos").update({ done: !done }).eq("id", id);
     fetchTodos();
   }
 
   async function deleteTodo(id: string) {
-    await supabase.from("todos").delete().eq("id", id);
+    await supabaseClient.from("todos").delete().eq("id", id);
     fetchTodos();
   }
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { supabase } from "@/lib/supabase";
+import { supabaseClient } from "@/lib/supabase-client";
 import {
   Table,
   TableBody,
@@ -66,7 +66,7 @@ export default function CompaniesClient({
     e.preventDefault();
     if (!newCompanyName.trim()) return;
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from("companies")
       .insert({
         name: newCompanyName.trim(),
@@ -99,7 +99,7 @@ export default function CompaniesClient({
       prev.map((c) => (c.id === company.id ? { ...c, status: newStatus } : c)),
     );
 
-    await supabase
+    await supabaseClient
       .from("companies")
       .update({ status: newStatus })
       .eq("id", company.id);
@@ -113,7 +113,7 @@ export default function CompaniesClient({
       comments,
     }));
 
-    await supabase.from("companies").upsert(updates);
+    await supabaseClient.from("companies").upsert(updates);
     setCommentDrafts({});
   };
 

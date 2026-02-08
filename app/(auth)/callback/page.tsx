@@ -1,4 +1,7 @@
 "use client";
+
+export const dynamic = "force-dynamic";
+
 import { useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { supabaseClient } from "@/lib/supabase-client";
@@ -9,7 +12,6 @@ export default function CallbackPage() {
 
   useEffect(() => {
     const handleRedirect = async () => {
-      // Supabase sends token in URL query: ?access_token=...
       const accessToken = searchParams.get("access_token");
       const refreshToken = searchParams.get("refresh_token") || "";
 
@@ -18,22 +20,22 @@ export default function CallbackPage() {
         return;
       }
 
-      // Set the session manually
-      const { data, error } = await supabaseClient.auth.setSession({
+      const { error } = await supabaseClient.auth.setSession({
         access_token: accessToken,
         refresh_token: refreshToken,
       });
 
       if (error) {
+        console.error(error);
         alert(error.message);
         return;
       }
 
-      router.push("/dashboard"); // redirect after successful login
+      router.push("/dashboard");
     };
 
     handleRedirect();
   }, [router, searchParams]);
 
-  return <div>Confirming your email...</div>;
+  return <div className="p-4 text-center">Confirming your email...</div>;
 }

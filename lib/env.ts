@@ -1,3 +1,14 @@
+import path from "path";
+import { fileURLToPath } from "url";
+import dotenv from "dotenv";
+
+// Fix __dirname for ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load .env.local only once
+dotenv.config({ path: path.resolve(__dirname, "../.env.local") });
+
 function required(name: string) {
   const value = process.env[name];
   if (!value) {

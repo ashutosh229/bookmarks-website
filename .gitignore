@@ -41,4 +41,7 @@ next-env.d.ts
 /data/courses.json
 /data/timetable.json
 /supabase
-gitpush.sh
+gitpush.sh  
+tree_generator.py
+structure.md  
+folder_tree.txt  

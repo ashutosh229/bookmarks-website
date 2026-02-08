@@ -20,6 +20,7 @@ function required(name: string) {
 export const env = {
   SUPABASE_URL: required("NEXT_PUBLIC_SUPABASE_URL"),
   SUPABASE_ANON_KEY: required("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
+  NEXT_PUBLIC_SITE_URL: required("NEXT_PUBLIC_SITE_URL"),
 };
 
 // Server-side Supabase client

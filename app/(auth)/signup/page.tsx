@@ -4,6 +4,7 @@ import { useState } from "react";
 import { supabaseClient } from "@/lib/supabase-client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { env } from "@/lib/supabase";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -21,6 +22,9 @@ export default function SignupPage() {
     const { error } = await supabaseClient.auth.signUp({
       email,
       password,
+      options: {
+        emailRedirectTo: `${env.NEXT_PUBLIC_SITE_URL}/(auth)/callback`,
+      },
     });
 
     setLoading(false);

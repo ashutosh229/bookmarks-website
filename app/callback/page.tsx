@@ -2,11 +2,11 @@
 
 export const dynamic = "force-dynamic";
 
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { supabaseClient } from "@/lib/supabase-client";
 
-export default function CallbackPage() {
+function Callback() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -38,4 +38,12 @@ export default function CallbackPage() {
   }, [router, searchParams]);
 
   return <div className="p-4 text-center">Confirming your email...</div>;
+}
+
+export default function CallbackPageWrapper() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <Callback />
+    </Suspense>
+  );
 }

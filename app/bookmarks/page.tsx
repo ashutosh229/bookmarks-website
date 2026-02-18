@@ -38,16 +38,17 @@ export default async function BookmarksPage({
     query = query.eq("status", params.status);
   }
 
-  // ✅ Apply search filter (DB level)
   if (params?.q && params.q.trim() !== "") {
     const searchTerm = params.q.trim();
-    const lowerKeyword = searchTerm.toLowerCase();
+    const safeTerm = searchTerm.replace(/,/g, "");
+    const lowerKeyword = safeTerm.toLowerCase();
 
-    query = query.or(`
-      title.ilike.%${searchTerm}%,
-      comments.ilike.%${searchTerm}%,
-      keywords.cs.{${lowerKeyword}}
-    `);
+    const searchFilter =
+      `title.ilike.%${safeTerm}%` +
+      `,comments.ilike.%${safeTerm}%` +
+      `,keywords.cs.{${lowerKeyword}}`;
+
+    query = query.or(searchFilter);
   }
 
   // ✅ Apply pagination

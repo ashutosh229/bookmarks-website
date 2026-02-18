@@ -91,7 +91,7 @@ export default function BookmarksClient({
 
     const keywords = newBookmark.keywords
       .split(",")
-      .map((k) => k.trim())
+      .map((k) => k.trim().toLowerCase())
       .filter(Boolean);
 
     const { data, error } = await supabaseClient
@@ -141,7 +141,7 @@ export default function BookmarksClient({
     if (!editingBookmark?.id) return;
 
     const keywords = editingBookmark.keywords
-      .map((k) => k.trim())
+      .map((k) => k.trim().toLowerCase())
       .filter(Boolean);
 
     const { id, ...rest } = editingBookmark;
@@ -436,7 +436,7 @@ export default function BookmarksClient({
                         ...editingBookmark,
                         keywords: e.target.value
                           .split(",")
-                          .map((k) => k.trim())
+                          .map((k) => k.trim().toLowerCase())
                           .filter(Boolean),
                       })
                     }

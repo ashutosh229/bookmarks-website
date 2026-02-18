@@ -57,7 +57,7 @@ export default async function BookmarksPage({
   );
 
   if (error) {
-    console.error("Error fetching bookmarks:", error);
+    console.log("Error fetching the bookmarks:", error);
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 py-8">
         <div className="max-w-7xl mx-auto px-4">

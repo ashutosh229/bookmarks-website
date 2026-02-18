@@ -45,7 +45,7 @@ export default async function BookmarksPage({
 
     const searchFilter =
       `title.ilike.%${safeTerm}%` +
-      `,comments.ilike.%${safeTerm}%` +
+      `,comment.ilike.%${safeTerm}%` +
       `,keywords.cs.{${lowerKeyword}}`;
 
     query = query.or(searchFilter);

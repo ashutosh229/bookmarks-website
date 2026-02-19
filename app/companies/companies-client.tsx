@@ -13,7 +13,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { useVirtualizer } from "@tanstack/react-virtual";
 import { useRef, useMemo } from "react";
 import CompanyRow from "./company-row";
 import debounce from "lodash.debounce";
@@ -49,15 +48,6 @@ export default function CompaniesClient({
   );
 
   const parentRef = useRef<HTMLDivElement>(null);
-  const rowVirtualizer = useVirtualizer({
-    count: companies.length,
-    getScrollElement: () => {
-      return parentRef.current;
-    },
-    estimateSize: () => {
-      return 80;
-    },
-  });
 
   const { toast } = useToast();
   /* ---------------- ADD ---------------- */
@@ -122,10 +112,14 @@ export default function CompaniesClient({
     debounce((value: string) => {
       const index = companyIndexMap.get(value.toLowerCase());
       if (index !== undefined) {
-        rowVirtualizer.scrollToIndex(index, { align: "center" });
+        const company = companies[index];
+        const el = document.getElementById(`company-${company.id}`);
+        if (el && parentRef.current) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
       }
     }, 300),
-    [companyIndexMap],
+    [companyIndexMap, companies],
   );
 
   /* ---------------- UI ---------------- */
@@ -169,7 +163,6 @@ export default function CompaniesClient({
         </CardHeader>
         <CardContent>
           <div ref={parentRef} className="h-[600px] overflow-auto">
-            {" "}
             <Table>
               <TableHeader>
                 <TableRow>
@@ -180,14 +173,14 @@ export default function CompaniesClient({
               </TableHeader>
 
               <TableBody>
-                {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-                  const company = companies[virtualRow.index];
+                {companies.map((company) => {
                   const isMatch =
                     search &&
                     company.name.toLowerCase() === search.toLowerCase();
                   return (
                     <CompanyRow
                       key={company.id}
+                      rowId={`company-${company.id}`}
                       isMatch={isMatch}
                       company={company}
                       commentValue={
@@ -200,7 +193,7 @@ export default function CompaniesClient({
                           [id]: value,
                         }))
                       }
-                    ></CompanyRow>
+                    />
                   );
                 })}
               </TableBody>

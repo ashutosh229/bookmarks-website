@@ -19,6 +19,7 @@ interface CompanyRowProps {
   onToggle: (company: Company) => Promise<void>;
   onCommentChange: (id: string, value: string) => void;
   isMatch: boolean | string;
+  rowId?: string;
 }
 
 const CompanyRow = memo(function CompanyRow({
@@ -27,9 +28,13 @@ const CompanyRow = memo(function CompanyRow({
   onToggle,
   onCommentChange,
   isMatch,
+  rowId,
 }: CompanyRowProps) {
   return (
-    <TableRow className={isMatch ? "bg-yellow-100 dark:bg-yellow-900" : ""}>
+    <TableRow
+      id={rowId}
+      className={isMatch ? "bg-yellow-100 dark:bg-yellow-900" : ""}
+    >
       <TableCell>{company.name}</TableCell>
 
       <TableCell>

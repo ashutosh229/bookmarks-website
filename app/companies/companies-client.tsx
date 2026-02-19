@@ -33,6 +33,8 @@ export default function CompaniesClient({
   initialCompanies,
 }: CompaniesClientProps) {
   const [companies, setCompanies] = useState(initialCompanies);
+  const [matchIndices, setMatchIndices] = useState<number[]>([]);
+  const [currentMatchPointer, setCurrentMatchPointer] = useState<number>(-1);
 
   const [newCompanyName, setNewCompanyName] = useState("");
   const [search, setSearch] = useState("");
@@ -126,18 +128,54 @@ export default function CompaniesClient({
   const handleSearch = useCallback(
     debounce((value: string) => {
       const valueLower = value.toLowerCase();
-      const index = companies.findIndex((c) =>
-        c.name.toLowerCase().includes(valueLower),
-      );
-      if (index !== -1) {
-        const company = companies[index];
+      if (!valueLower) {
+        setMatchIndices([]);
+        setCurrentMatchPointer(-1);
+        return;
+      }
+
+      const matches = companies
+        .map((c, idx) => ({ c, idx }))
+        .filter(({ c }) => c.name.toLowerCase().includes(valueLower))
+        .map(({ idx }) => idx);
+
+      setMatchIndices(matches);
+      if (matches.length > 0) {
+        setCurrentMatchPointer(0);
+        const company = companies[matches[0]];
         const el = document.getElementById(`company-${company.id}`);
         if (el && parentRef.current) {
           el.scrollIntoView({ behavior: "smooth", block: "center" });
         }
+      } else {
+        setCurrentMatchPointer(-1);
       }
     }, 300),
     [companies],
+  );
+
+  const goToMatch = useCallback(
+    (pointer: number) => {
+      if (matchIndices.length === 0) return;
+      const wrapped =
+        ((pointer % matchIndices.length) + matchIndices.length) %
+        matchIndices.length;
+      setCurrentMatchPointer(wrapped);
+      const company = companies[matchIndices[wrapped]];
+      const el = document.getElementById(`company-${company.id}`);
+      if (el && parentRef.current)
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+    },
+    [matchIndices, companies],
+  );
+
+  const goToNextMatch = useCallback(
+    () => goToMatch(currentMatchPointer + 1),
+    [goToMatch, currentMatchPointer],
+  );
+  const goToPrevMatch = useCallback(
+    () => goToMatch(currentMatchPointer - 1),
+    [goToMatch, currentMatchPointer],
   );
 
   /* ---------------- UI ---------------- */
@@ -163,15 +201,39 @@ export default function CompaniesClient({
       </Card>
       <Card className="mb-4">
         <CardContent className="pt-4">
-          <Input
-            placeholder="Search company (partial match)..."
-            value={search}
-            onChange={(e) => {
-              const value = e.target.value;
-              setSearch(value);
-              handleSearch(value);
-            }}
-          />
+          <div className="flex gap-2 items-center">
+            <Input
+              placeholder="Search company (partial match)..."
+              value={search}
+              onChange={(e) => {
+                const value = e.target.value;
+                setSearch(value);
+                handleSearch(value);
+              }}
+            />
+
+            {matchIndices.length > 0 && (
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={goToPrevMatch}
+                  className="px-2 py-1 bg-slate-100 rounded"
+                >
+                  ◀
+                </button>
+                <button
+                  type="button"
+                  onClick={goToNextMatch}
+                  className="px-2 py-1 bg-slate-100 rounded"
+                >
+                  ▶
+                </button>
+                <div className="text-sm text-slate-600">
+                  {currentMatchPointer + 1}/{matchIndices.length}
+                </div>
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
 
@@ -191,15 +253,20 @@ export default function CompaniesClient({
               </TableHeader>
 
               <TableBody>
-                {companies.map((company) => {
+                {companies.map((company, idx) => {
                   const isMatch =
                     search &&
                     company.name.toLowerCase().includes(search.toLowerCase());
+                  const matchOrder = matchIndices.indexOf(idx);
+                  const isCurrent =
+                    matchOrder !== -1 && matchOrder === currentMatchPointer;
                   return (
                     <CompanyRow
                       key={company.id}
                       rowId={`company-${company.id}`}
                       isMatch={isMatch}
+                      matchOrder={matchOrder !== -1 ? matchOrder : undefined}
+                      isCurrent={isCurrent}
                       company={company}
                       commentValue={
                         commentDrafts[company.id] ?? company.comments

@@ -22,6 +22,8 @@ interface CompanyRowProps {
   isMatch: boolean | string;
   rowId?: string;
   onDelete?: (id: string) => Promise<void> | void;
+  matchOrder?: number; // zero-based order among matches
+  isCurrent?: boolean;
 }
 
 const CompanyRow = memo(function CompanyRow({
@@ -32,13 +34,29 @@ const CompanyRow = memo(function CompanyRow({
   isMatch,
   rowId,
   onDelete,
+  matchOrder,
+  isCurrent,
 }: CompanyRowProps) {
   return (
     <TableRow
       id={rowId}
-      className={isMatch ? "bg-yellow-100 dark:bg-yellow-900" : ""}
+      className={
+        isCurrent
+          ? "bg-indigo-100 dark:bg-indigo-900"
+          : isMatch
+            ? "bg-yellow-100 dark:bg-yellow-900"
+            : ""
+      }
     >
       <TableCell>{company.name}</TableCell>
+
+      {typeof matchOrder === "number" && matchOrder >= 0 && (
+        <TableCell>
+          <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded bg-indigo-200 dark:bg-indigo-800 text-indigo-800 dark:text-indigo-100">
+            {matchOrder + 1}
+          </span>
+        </TableCell>
+      )}
 
       <TableCell>
         <Switch

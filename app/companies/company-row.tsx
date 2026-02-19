@@ -4,6 +4,7 @@ import { memo } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { TableCell, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 
 interface Company {
   id: string;
@@ -20,6 +21,7 @@ interface CompanyRowProps {
   onCommentChange: (id: string, value: string) => void;
   isMatch: boolean | string;
   rowId?: string;
+  onDelete?: (id: string) => Promise<void> | void;
 }
 
 const CompanyRow = memo(function CompanyRow({
@@ -29,6 +31,7 @@ const CompanyRow = memo(function CompanyRow({
   onCommentChange,
   isMatch,
   rowId,
+  onDelete,
 }: CompanyRowProps) {
   return (
     <TableRow
@@ -49,6 +52,21 @@ const CompanyRow = memo(function CompanyRow({
           value={commentValue}
           onChange={(e) => onCommentChange(company.id, e.target.value)}
         />
+      </TableCell>
+
+      <TableCell>
+        <Button
+          variant="destructive"
+          onClick={() => {
+            if (typeof onDelete === "function") {
+              if (confirm(`Delete ${company.name}?`)) {
+                onDelete(company.id);
+              }
+            }
+          }}
+        >
+          Delete
+        </Button>
       </TableCell>
     </TableRow>
   );

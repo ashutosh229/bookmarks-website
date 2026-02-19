@@ -43,6 +43,28 @@ export default function CompaniesClient({
   const parentRef = useRef<HTMLDivElement>(null);
 
   const { toast } = useToast();
+
+  /* ---------------- DELETE ---------------- */
+  const handleDeleteCompany = useCallback(
+    async (id: string) => {
+      if (!id) return;
+      const { error } = await supabaseClient
+        .from("companies")
+        .delete()
+        .eq("id", id);
+      if (error) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+      setCompanies((prev) => prev.filter((c) => c.id !== id));
+      toast({ title: "Company deleted" });
+    },
+    [toast],
+  );
   /* ---------------- ADD ---------------- */
 
   const handleAddCompany = async (e: React.FormEvent) => {
@@ -142,7 +164,7 @@ export default function CompaniesClient({
       <Card className="mb-4">
         <CardContent className="pt-4">
           <Input
-            placeholder="Search company (exact name)..."
+            placeholder="Search company (partial match)..."
             value={search}
             onChange={(e) => {
               const value = e.target.value;
@@ -172,7 +194,7 @@ export default function CompaniesClient({
                 {companies.map((company) => {
                   const isMatch =
                     search &&
-                    company.name.toLowerCase() === search.toLowerCase();
+                    company.name.toLowerCase().includes(search.toLowerCase());
                   return (
                     <CompanyRow
                       key={company.id}
@@ -189,6 +211,7 @@ export default function CompaniesClient({
                           [id]: value,
                         }))
                       }
+                      onDelete={handleDeleteCompany}
                     />
                   );
                 })}

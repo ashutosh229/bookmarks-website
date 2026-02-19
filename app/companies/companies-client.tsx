@@ -33,13 +33,6 @@ export default function CompaniesClient({
   initialCompanies,
 }: CompaniesClientProps) {
   const [companies, setCompanies] = useState(initialCompanies);
-  const companyIndexMap = useMemo(() => {
-    const map = new Map<string, number>();
-    companies.forEach((c, i) => {
-      map.set(c.name.toLowerCase(), i);
-    });
-    return map;
-  }, [companies]);
 
   const [newCompanyName, setNewCompanyName] = useState("");
   const [search, setSearch] = useState("");
@@ -110,8 +103,11 @@ export default function CompaniesClient({
   /* ---------------- SEARCH ---------------- */
   const handleSearch = useCallback(
     debounce((value: string) => {
-      const index = companyIndexMap.get(value.toLowerCase());
-      if (index !== undefined) {
+      const valueLower = value.toLowerCase();
+      const index = companies.findIndex((c) =>
+        c.name.toLowerCase().includes(valueLower),
+      );
+      if (index !== -1) {
         const company = companies[index];
         const el = document.getElementById(`company-${company.id}`);
         if (el && parentRef.current) {
@@ -119,7 +115,7 @@ export default function CompaniesClient({
         }
       }
     }, 300),
-    [companyIndexMap, companies],
+    [companies],
   );
 
   /* ---------------- UI ---------------- */

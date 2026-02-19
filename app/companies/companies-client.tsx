@@ -184,63 +184,7 @@ export default function CompaniesClient({
     <div className="container mx-auto p-4 max-w-4xl">
       <h1 className="text-3xl font-bold text-center mb-6">Company Tracker</h1>
 
-      <div className="sticky top-4 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-0 py-2 -mx-4">
-        <div className="container mx-auto p-4 max-w-4xl">
-          <Card className="mb-4">
-            <CardHeader>
-              <CardTitle>Add Company</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleAddCompany} className="flex gap-2">
-                <Input
-                  value={newCompanyName}
-                  onChange={(e) => setNewCompanyName(e.target.value)}
-                  placeholder="Company name"
-                />
-                <Button>Add</Button>
-              </form>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-4">
-              <div className="flex gap-2 items-center">
-                <Input
-                  placeholder="Search company (partial match)..."
-                  value={search}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setSearch(value);
-                    handleSearch(value);
-                  }}
-                />
-
-                {matchIndices.length > 0 && (
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={goToPrevMatch}
-                      className="px-2 py-1 bg-slate-100 rounded"
-                    >
-                      ◀
-                    </button>
-                    <button
-                      type="button"
-                      onClick={goToNextMatch}
-                      className="px-2 py-1 bg-slate-100 rounded"
-                    >
-                      ▶
-                    </button>
-                    <div className="text-sm text-slate-600">
-                      {currentMatchPointer + 1}/{matchIndices.length}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      {/* Add/Search will appear inside the scrollable list and stick to its top */}
 
       <Card>
         <CardHeader>
@@ -248,6 +192,60 @@ export default function CompaniesClient({
         </CardHeader>
         <CardContent>
           <div ref={parentRef} className="h-[600px] overflow-auto">
+            <div className="sticky top-0 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm py-2">
+              <div className="container mx-auto px-4 max-w-4xl">
+                <Card className="mb-2">
+                  <CardContent>
+                    <form onSubmit={handleAddCompany} className="flex gap-2">
+                      <Input
+                        value={newCompanyName}
+                        onChange={(e) => setNewCompanyName(e.target.value)}
+                        placeholder="Company name"
+                      />
+                      <Button>Add</Button>
+                    </form>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="pt-2">
+                    <div className="flex gap-2 items-center">
+                      <Input
+                        placeholder="Search company (partial match)..."
+                        value={search}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          setSearch(value);
+                          handleSearch(value);
+                        }}
+                      />
+
+                      {matchIndices.length > 0 && (
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={goToPrevMatch}
+                            className="px-2 py-1 bg-slate-100 rounded"
+                          >
+                            ◀
+                          </button>
+                          <button
+                            type="button"
+                            onClick={goToNextMatch}
+                            className="px-2 py-1 bg-slate-100 rounded"
+                          >
+                            ▶
+                          </button>
+                          <div className="text-sm text-slate-600">
+                            {currentMatchPointer + 1}/{matchIndices.length}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
             <Table>
               <TableHeader>
                 <TableRow>

@@ -5,6 +5,8 @@ import { useTheme } from "next-themes";
 import Link from "next/link";
 import services from "../data/services";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/app/providers";
+import { LogoutButton } from "@/components/LogoutButton";
 
 export default function Header() {
   const { theme, setTheme } = useTheme();
@@ -29,19 +31,53 @@ export default function Header() {
           </Link>
         ))}
       </nav>
+      <div className="flex items-center gap-4">
+        {mounted && (
+          <button
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            className="p-2 rounded-full bg-gray-200 dark:bg-gray-700"
+            aria-label="Toggle theme"
+          >
+            {theme === "dark" ? (
+              <Sun className="w-5 h-5" />
+            ) : (
+              <Moon className="w-5 h-5" />
+            )}
+          </button>
+        )}
 
-      {mounted && (
-        <button
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          className="p-2 rounded-full bg-gray-200 dark:bg-gray-700"
-        >
-          {theme === "dark" ? (
-            <Sun className="w-5 h-5" />
-          ) : (
-            <Moon className="w-5 h-5" />
-          )}
-        </button>
-      )}
+        {mounted && (
+          <div className="flex items-center gap-4">
+            <UserMenu />
+          </div>
+        )}
+      </div>
     </header>
   );
+}
+
+function UserMenu() {
+  try {
+    const { user } = useAuth() as any;
+    if (!user)
+      return (
+        <Link href="/login" className="text-sm underline">
+          Login
+        </Link>
+      );
+    return (
+      <div className="flex items-center gap-3">
+        <div className="text-sm text-slate-700 dark:text-slate-200">
+          {user.email}
+        </div>
+        <LogoutButton />
+      </div>
+    );
+  } catch (e) {
+    return (
+      <Link href="/login" className="text-sm underline">
+        Login
+      </Link>
+    );
+  }
 }

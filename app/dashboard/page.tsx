@@ -1,15 +1,21 @@
-export const dynamic = "force-dynamic";
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
-import { cookies } from "next/headers";
+"use client";
+
+import React, { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/app/providers";
 import { LogoutButton } from "@/components/LogoutButton";
 
-export default async function Dashboard() {
-  const supabase = createServerComponentClient({ cookies });
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+export default function Dashboard() {
+  const router = useRouter();
+  const { user, isLoading } = useAuth() as any;
 
-  if (!user) return <p>Loading...</p>;
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.push("/login");
+    }
+  }, [isLoading, user, router]);
+
+  if (isLoading || !user) return <p className="p-6">Loading...</p>;
 
   return (
     <div className="p-6">

@@ -14,11 +14,11 @@ const services = [
     link: "/bookmarks",
     description: "Keep track of all your important bookmarks and hyperlinks",
   },
-  {
-    name: "Monthly Expenses",
-    link: "/monthly-expense-tracker",
-    description: "Analyses monthly expenses and other financial transactions",
-  },
+  // {
+  //   name: "Monthly Expenses",
+  //   link: "/monthly-expense-tracker",
+  //   description: "Analyses monthly expenses and other financial transactions",
+  // },
   {
     name: "Companies",
     link: "/companies",

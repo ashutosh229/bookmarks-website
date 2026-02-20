@@ -181,8 +181,13 @@ export default function CompaniesClient({
   /* ---------------- UI ---------------- */
 
   return (
-    <div className="container mx-auto p-4 max-w-4xl">
-      <h1 className="text-3xl font-bold text-center mb-6">Company Tracker</h1>
+    <div className="container mx-auto p-4 max-w-5xl">
+      <div className="mb-6">
+        <h1 className="text-3xl font-extrabold">Company Tracker</h1>
+        <p className="text-sm text-slate-500 mt-1">
+          Search, navigate matches and manage tracked companies.
+        </p>
+      </div>
 
       {/* Add/Search will appear inside the scrollable list and stick to its top */}
 
@@ -192,7 +197,7 @@ export default function CompaniesClient({
         </CardHeader>
         <CardContent>
           <div ref={parentRef} className="h-[600px] overflow-auto">
-            <div className="sticky top-0 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm py-2">
+            <div className="sticky top-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm py-3 shadow-sm rounded-b-md">
               <div className="container mx-auto px-4 max-w-4xl">
                 <Card className="mb-2">
                   <CardContent>
@@ -246,12 +251,14 @@ export default function CompaniesClient({
                 </Card>
               </div>
             </div>
-            <Table>
+            <Table className="w-full">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead className="w-2/5">Name</TableHead>
+                  <TableHead className="w-1/6">Matched</TableHead>
+                  <TableHead className="w-1/6">Status</TableHead>
                   <TableHead>Comments</TableHead>
+                  <TableHead className="w-24">Actions</TableHead>
                 </TableRow>
               </TableHeader>
 

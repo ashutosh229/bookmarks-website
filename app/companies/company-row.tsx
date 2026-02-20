@@ -40,15 +40,22 @@ const CompanyRow = memo(function CompanyRow({
   return (
     <TableRow
       id={rowId}
-      className={
+      className={`transition-colors hover:bg-slate-50 dark:hover:bg-slate-800 ${
         isCurrent
-          ? "bg-indigo-100 dark:bg-indigo-900"
+          ? "bg-indigo-50 dark:bg-indigo-900"
           : isMatch
-            ? "bg-yellow-100 dark:bg-yellow-900"
+            ? "bg-yellow-50 dark:bg-yellow-900"
             : ""
-      }
+      }`}
     >
-      <TableCell>{company.name}</TableCell>
+      <TableCell>
+        <div className="flex flex-col">
+          <span className="font-medium text-sm">{company.name}</span>
+          <span className="text-xs text-slate-500 mt-0.5">
+            {new Date(company.created_at).toLocaleDateString()}
+          </span>
+        </div>
+      </TableCell>
 
       {typeof matchOrder === "number" && matchOrder >= 0 && (
         <TableCell>
@@ -67,6 +74,7 @@ const CompanyRow = memo(function CompanyRow({
 
       <TableCell>
         <Textarea
+          className="h-20"
           value={commentValue}
           onChange={(e) => onCommentChange(company.id, e.target.value)}
         />
@@ -75,6 +83,7 @@ const CompanyRow = memo(function CompanyRow({
       <TableCell>
         <Button
           variant="destructive"
+          className="text-sm px-2"
           onClick={() => {
             if (typeof onDelete === "function") {
               if (confirm(`Delete ${company.name}?`)) {

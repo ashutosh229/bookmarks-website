@@ -8,7 +8,8 @@ export const revalidate = 60;
 export const dynamic = "force-dynamic";
 
 export default async function CompaniesPage() {
-  const supabase = createServerComponentClient({ cookies });
+  const cookieStore = cookies();
+  const supabase = createServerComponentClient({ cookies: () => cookieStore });
 
   const {
     data: { user },

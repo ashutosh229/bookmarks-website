@@ -28,8 +28,10 @@ import {
 import { supabaseClient } from "@/lib/supabase-client";
 import { ExamRecord } from "@/lib/types";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/app/providers";
 
 function ExamMarksTrackerContent() {
+  const { user } = useAuth() as any;
   const [records, setRecords] = useState<ExamRecord[]>([]);
   const [filter, setFilter] = useState<string>("");
   const [newRecord, setNewRecord] = useState<ExamRecord>({
@@ -43,18 +45,24 @@ function ExamMarksTrackerContent() {
   const [isDialogOpenForUpdating, setIsDialogOpenForUpdating] = useState(false);
 
   useEffect(() => {
+    if (!user) return;
     fetchRecords();
   }, []);
 
   const fetchRecords = async () => {
     const { data, error } = await supabaseClient
       .from("exam_records")
-      .select("*");
+      .select("*")
+      .eq("user_id", user?.id);
     if (!error) setRecords(data || []);
   };
 
   const deleteCourse = async (course: string) => {
-    await supabaseClient.from("exam_records").delete().eq("course", course);
+    await supabaseClient
+      .from("exam_records")
+      .delete()
+      .eq("course", course)
+      .eq("user_id", user?.id);
     fetchRecords();
   };
 
@@ -63,7 +71,8 @@ function ExamMarksTrackerContent() {
     await supabaseClient
       .from("exam_records")
       .update(editRecord)
-      .eq("id", editRecord.id);
+      .eq("id", editRecord.id)
+      .eq("user_id", user?.id);
     setEditRecord(null);
     setIsDialogOpen(false);
     fetchRecords();
@@ -72,7 +81,7 @@ function ExamMarksTrackerContent() {
   const addRecord = async () => {
     const { error } = await supabaseClient
       .from("exam_records")
-      .insert([newRecord]);
+      .insert([{ ...newRecord, user_id: user?.id }]);
     if (!error) {
       setIsDialogOpen(false); // Close the dialog
       setNewRecord({ course: "", examType: "", marks: 0, weightage: 0 });

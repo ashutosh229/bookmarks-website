@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useRef, useMemo } from "react";
 import CompanyRow from "./company-row";
 import debounce from "lodash.debounce";
+import { useAuth } from "@/app/providers";
 
 interface Company {
   id: string;
@@ -32,6 +33,7 @@ interface CompaniesClientProps {
 export default function CompaniesClient({
   initialCompanies,
 }: CompaniesClientProps) {
+  const { user } = useAuth() as any;
   const [companies, setCompanies] = useState(initialCompanies);
   const [matchIndices, setMatchIndices] = useState<number[]>([]);
   const [currentMatchPointer, setCurrentMatchPointer] = useState<number>(-1);
@@ -53,7 +55,8 @@ export default function CompaniesClient({
       const { error } = await supabaseClient
         .from("companies")
         .delete()
-        .eq("id", id);
+        .eq("id", id)
+        .eq("user_id", user?.id);
       if (error) {
         toast({
           title: "Error",
@@ -65,7 +68,7 @@ export default function CompaniesClient({
       setCompanies((prev) => prev.filter((c) => c.id !== id));
       toast({ title: "Company deleted" });
     },
-    [toast],
+    [toast, user],
   );
   /* ---------------- ADD ---------------- */
 
@@ -79,6 +82,7 @@ export default function CompaniesClient({
         name: newCompanyName.trim(),
         status: "unsent",
         comments: "",
+        user_id: user?.id,
       })
       .select()
       .single();
@@ -99,18 +103,24 @@ export default function CompaniesClient({
 
   /* ---------------- STATUS ---------------- */
 
-  const toggleStatus = useCallback(async (company: Company) => {
-    const newStatus = company.status === "sent" ? "unsent" : "sent";
+  const toggleStatus = useCallback(
+    async (company: Company) => {
+      const newStatus = company.status === "sent" ? "unsent" : "sent";
 
-    setCompanies((prev) =>
-      prev.map((c) => (c.id === company.id ? { ...c, status: newStatus } : c)),
-    );
+      setCompanies((prev) =>
+        prev.map((c) =>
+          c.id === company.id ? { ...c, status: newStatus } : c,
+        ),
+      );
 
-    await supabaseClient
-      .from("companies")
-      .update({ status: newStatus })
-      .eq("id", company.id);
-  }, []);
+      await supabaseClient
+        .from("companies")
+        .update({ status: newStatus })
+        .eq("id", company.id)
+        .eq("user_id", user?.id);
+    },
+    [user],
+  );
 
   /* ---------------- COMMENTS (DEBOUNCED) ---------------- */
 
@@ -120,8 +130,24 @@ export default function CompaniesClient({
       comments,
     }));
 
-    await supabaseClient.from("companies").upsert(updates);
-    setCommentDrafts({});
+    try {
+      await Promise.all(
+        updates.map(({ id, comments }) =>
+          supabaseClient
+            .from("companies")
+            .update({ comments })
+            .eq("id", id)
+            .eq("user_id", user?.id),
+        ),
+      );
+      setCommentDrafts({});
+    } catch (e) {
+      toast({
+        title: "Error",
+        description: "Could not save comments",
+        variant: "destructive",
+      });
+    }
   };
 
   /* ---------------- SEARCH ---------------- */

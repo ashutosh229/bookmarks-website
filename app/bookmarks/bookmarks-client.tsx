@@ -24,6 +24,7 @@ import { supabaseClient } from "@/lib/supabase-client";
 import { Bookmark } from "@/lib/types";
 import { BookmarkPlus } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useAuth } from "@/app/providers";
 import { toast } from "sonner";
 import BookmarkCard from "./bookmark-card";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -41,6 +42,7 @@ export default function BookmarksClient({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user } = useAuth() as any;
 
   const [bookmarks, setBookmarks] = useState(initialBookmarks);
   const [newBookmark, setNewBookmark] = useState<{
@@ -96,7 +98,7 @@ export default function BookmarksClient({
 
     const { data, error } = await supabaseClient
       .from("bookmarks")
-      .insert([{ ...newBookmark, keywords }])
+      .insert([{ ...newBookmark, keywords, user_id: user?.id }])
       .select()
       .single();
 
@@ -124,7 +126,8 @@ export default function BookmarksClient({
     const { error } = await supabaseClient
       .from("bookmarks")
       .delete()
-      .eq("id", id);
+      .eq("id", id)
+      .eq("user_id", user?.id);
     if (error) {
       toast.error("Error deleting bookmark");
       return;
@@ -149,7 +152,8 @@ export default function BookmarksClient({
     const { error } = await supabaseClient
       .from("bookmarks")
       .update({ ...rest, keywords })
-      .eq("id", id);
+      .eq("id", id)
+      .eq("user_id", user?.id);
 
     if (error) {
       toast.error("Error updating bookmark");

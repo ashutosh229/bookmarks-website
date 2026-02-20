@@ -8,6 +8,7 @@ export async function getTransactions({
   payer,
   taker,
   search,
+  userId,
 }: {
   month?: string; // e.g. '2025-09'
   type?: "income" | "expense" | "due-pay";
@@ -16,6 +17,7 @@ export async function getTransactions({
   payer?: string;
   taker?: string;
   search?: string;
+  userId?: string;
 }) {
   let query = supabase
     .from("transactions")
@@ -34,6 +36,7 @@ export async function getTransactions({
   if (payer) query = query.ilike("payer", `%${payer}%`);
   if (taker) query = query.ilike("taker", `%${taker}%`);
   if (search) query = query.ilike("comments", `%${search}%`);
+  if (userId) query = query.eq("user_id", userId);
 
   const { data, error } = await query;
   if (error) throw error;

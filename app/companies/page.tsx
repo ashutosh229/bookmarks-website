@@ -5,8 +5,10 @@ import { Suspense } from "react";
 import AuthGuard from "@/components/AuthGuard";
 import { supabaseClient } from "@/lib/supabase-client";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/app/providers";
 
 export default function CompaniesPage() {
+  const { user } = useAuth() as any;
   const [initialCompanies, setInitialCompanies] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -14,9 +16,11 @@ export default function CompaniesPage() {
   useEffect(() => {
     const fetchCompanies = async () => {
       try {
+        if (!user) return;
         const { data, error: fetchError } = await supabaseClient
           .from("companies")
           .select("*")
+          .eq("user_id", user.id)
           .order("created_at", { ascending: false })
           .limit(100);
 
@@ -34,7 +38,7 @@ export default function CompaniesPage() {
     };
 
     fetchCompanies();
-  }, []);
+  }, [user]);
 
   return (
     <AuthGuard>

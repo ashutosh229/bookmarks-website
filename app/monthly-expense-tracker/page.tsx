@@ -2,6 +2,7 @@
 
 import AuthGuard from "@/components/AuthGuard";
 import { useState, useEffect } from "react";
+import { useAuth } from "@/app/providers";
 import { getTransactions } from "./utils/getTransaction";
 import AddTransactionForm from "./components/addTransactionForm";
 
@@ -11,9 +12,10 @@ function TransactionsContent() {
     search: string;
     type?: "income" | "expense" | "due-pay";
   }>({ search: "", type: undefined });
+  const { user } = useAuth() as any;
 
   const fetchTransactions = async () => {
-    const data = await getTransactions(filters);
+    const data = await getTransactions({ ...filters, userId: user?.id });
     setTransactions(data);
   };
 

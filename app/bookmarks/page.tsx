@@ -5,10 +5,12 @@ import AuthGuard from "@/components/AuthGuard";
 import { supabaseClient } from "@/lib/supabase-client";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
+import { useAuth } from "@/app/providers";
 
 const PAGE_SIZE = 20;
 
 function BookmarksContentInner() {
+  const { user } = useAuth() as any;
   const searchParams = useSearchParams();
   const [bookmarks, setBookmarks] = useState<any[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -30,9 +32,12 @@ function BookmarksContentInner() {
 
       const offset = page * PAGE_SIZE;
 
+      if (!user) return;
+
       let query = supabaseClient
         .from("bookmarks")
         .select("*", { count: "exact" })
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
       // ✅ Apply status filter

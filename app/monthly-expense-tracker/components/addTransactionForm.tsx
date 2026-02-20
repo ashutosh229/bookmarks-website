@@ -1,8 +1,10 @@
 "use client";
 import { useState } from "react";
 import { addTransaction } from "../utils/addTransaction";
+import { useAuth } from "@/app/providers";
 
 export default function AddTransactionForm({ onAdd }: { onAdd: () => void }) {
+  const { user } = useAuth() as any;
   const [form, setForm] = useState({
     type: "expense",
     amount: "",
@@ -15,7 +17,7 @@ export default function AddTransactionForm({ onAdd }: { onAdd: () => void }) {
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
+    >,
   ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -24,12 +26,14 @@ export default function AddTransactionForm({ onAdd }: { onAdd: () => void }) {
     e.preventDefault();
     setLoading(true);
     try {
+      const { user } = useAuth() as any;
       await addTransaction({
         type: form.type as "income" | "expense" | "due-pay",
         amount: parseFloat(form.amount),
         payer: form.payer,
         taker: form.taker,
         comments: form.comments,
+        userId: user?.id,
       });
       setForm({
         type: "expense",

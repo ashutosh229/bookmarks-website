@@ -10,8 +10,10 @@ import { supabaseClient } from "@/lib/supabase-client";
 import { DueRecord, ExpenseRecord, IncomeRecord } from "@/lib/types";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/app/providers";
 
 function ExpenseTrackerContent() {
+  const { user } = useAuth() as any;
   const [expenses, setExpenses] = useState<ExpenseRecord[]>([]);
   const [income, setIncome] = useState<IncomeRecord[]>([]);
   const [dues, setDues] = useState<DueRecord[]>([]);
@@ -33,15 +35,23 @@ function ExpenseTrackerContent() {
   });
 
   useEffect(() => {
+    if (!user) return;
     fetchRecords();
   }, []);
 
   const fetchRecords = async () => {
     const { data: expenses } = await supabaseClient
       .from("expenses")
-      .select("*");
-    const { data: income } = await supabaseClient.from("income").select("*");
-    const { data: dues } = await supabaseClient.from("dues").select("*");
+      .select("*")
+      .eq("user_id", user?.id);
+    const { data: income } = await supabaseClient
+      .from("income")
+      .select("*")
+      .eq("user_id", user?.id);
+    const { data: dues } = await supabaseClient
+      .from("dues")
+      .select("*")
+      .eq("user_id", user?.id);
 
     if (expenses) setExpenses(expenses);
     if (income) setIncome(income);
@@ -49,19 +59,25 @@ function ExpenseTrackerContent() {
   };
 
   const addExpense = async () => {
-    await supabaseClient.from("expenses").insert([newExpense]);
+    await supabaseClient
+      .from("expenses")
+      .insert([{ ...newExpense, user_id: user?.id }]);
     setNewExpense({ amount: 0, description: "", includeInTotal: true });
     fetchRecords();
   };
 
   const addIncome = async () => {
-    await supabaseClient.from("income").insert([newIncome]);
+    await supabaseClient
+      .from("income")
+      .insert([{ ...newIncome, user_id: user?.id }]);
     setNewIncome({ amount: 0, description: "" });
     fetchRecords();
   };
 
   const addDue = async () => {
-    await supabaseClient.from("dues").insert([newDue]);
+    await supabaseClient
+      .from("dues")
+      .insert([{ ...newDue, user_id: user?.id }]);
     setNewDue({
       amount: 0,
       description: "",

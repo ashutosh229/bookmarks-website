@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAuth } from "@/app/providers";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -30,11 +31,13 @@ const availableLists = [
 ];
 
 function TodoContent() {
+  const { user } = useAuth() as any;
   const [todos, setTodos] = useState<Todo[]>([]);
   const [newTask, setNewTask] = useState("");
   const [selectedList, setSelectedList] = useState("general");
 
   useEffect(() => {
+    if (!user) return;
     fetchTodos();
   }, [selectedList]);
 
@@ -43,26 +46,37 @@ function TodoContent() {
       .from("todos")
       .select("*")
       .eq("list_name", selectedList)
+      .eq("user_id", user?.id)
       .order("created_at", { ascending: false });
     if (!error && data) setTodos(data);
   }
 
   async function addTodo() {
     if (!newTask.trim()) return;
-    await supabaseClient
-      .from("todos")
-      .insert({ task: newTask.trim(), list_name: selectedList });
+    await supabaseClient.from("todos").insert({
+      task: newTask.trim(),
+      list_name: selectedList,
+      user_id: user?.id,
+    });
     setNewTask("");
     fetchTodos();
   }
 
   async function toggleDone(id: string, done: boolean) {
-    await supabaseClient.from("todos").update({ done: !done }).eq("id", id);
+    await supabaseClient
+      .from("todos")
+      .update({ done: !done })
+      .eq("id", id)
+      .eq("user_id", user?.id);
     fetchTodos();
   }
 
   async function deleteTodo(id: string) {
-    await supabaseClient.from("todos").delete().eq("id", id);
+    await supabaseClient
+      .from("todos")
+      .delete()
+      .eq("id", id)
+      .eq("user_id", user?.id);
     fetchTodos();
   }
 

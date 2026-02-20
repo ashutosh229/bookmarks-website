@@ -1,71 +1,87 @@
-import { supabase } from "@/lib/supabase";
-import BookmarksClient from "./bookmarks-client";
+"use client";
 
-export const revalidate = 0;
-export const dynamic = "force-dynamic";
+import BookmarksClient from "./bookmarks-client";
+import AuthGuard from "@/components/AuthGuard";
+import { supabaseClient } from "@/lib/supabase-client";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
 
 const PAGE_SIZE = 20;
 
-export default async function BookmarksPage({
-  searchParams,
-}: {
-  searchParams?:
-    | Promise<{
-        page?: string;
-        status?: string;
-        q?: string;
-      }>
-    | {
-        page?: string;
-        status?: string;
-        q?: string;
-      };
-}) {
-  // Await searchParams if it's a promise (Next.js 15+)
-  const params =
-    searchParams instanceof Promise ? await searchParams : searchParams;
+function BookmarksContentInner() {
+  const searchParams = useSearchParams();
+  const [bookmarks, setBookmarks] = useState<any[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const page = Number(params?.page ?? "0");
-  const offset = page * PAGE_SIZE;
+  const page = Number(searchParams.get("page") ?? "0");
+  const status = searchParams.get("status") ?? "all";
+  const q = searchParams.get("q") ?? "";
 
-  let query = supabase
-    .from("bookmarks")
-    .select("*", { count: "exact" })
-    .order("created_at", { ascending: false });
+  useEffect(() => {
+    fetchBookmarks();
+  }, [page, status, q]);
 
-  // ✅ Apply status filter
-  if (params?.status && params.status !== "all") {
-    query = query.eq("status", params.status);
+  async function fetchBookmarks() {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const offset = page * PAGE_SIZE;
+
+      let query = supabaseClient
+        .from("bookmarks")
+        .select("*", { count: "exact" })
+        .order("created_at", { ascending: false });
+
+      // ✅ Apply status filter
+      if (status && status !== "all") {
+        query = query.eq("status", status);
+      }
+
+      if (q && q.trim() !== "") {
+        const searchTerm = q.trim();
+        const safeTerm = searchTerm.replace(/,/g, "");
+        const lowerKeyword = safeTerm.toLowerCase();
+
+        const searchFilter =
+          `title.ilike.%${safeTerm}%` +
+          `,comment.ilike.%${safeTerm}%` +
+          `,keywords.cs.{${lowerKeyword}}`;
+
+        query = query.or(searchFilter);
+      }
+
+      // ✅ Apply pagination
+      const {
+        data,
+        count,
+        error: fetchError,
+      } = await query.range(offset, offset + PAGE_SIZE - 1);
+
+      if (fetchError) {
+        console.log("Error fetching the bookmarks:", fetchError);
+        setError("Error loading bookmarks. Please try again later.");
+        return;
+      }
+
+      setBookmarks(data ?? []);
+      setTotalCount(count ?? 0);
+    } catch (err) {
+      console.error("Error fetching bookmarks:", err);
+      setError("Error loading bookmarks. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
   }
-
-  if (params?.q && params.q.trim() !== "") {
-    const searchTerm = params.q.trim();
-    const safeTerm = searchTerm.replace(/,/g, "");
-    const lowerKeyword = safeTerm.toLowerCase();
-
-    const searchFilter =
-      `title.ilike.%${safeTerm}%` +
-      `,comment.ilike.%${safeTerm}%` +
-      `,keywords.cs.{${lowerKeyword}}`;
-
-    query = query.or(searchFilter);
-  }
-
-  // ✅ Apply pagination
-  const { data, count, error } = await query.range(
-    offset,
-    offset + PAGE_SIZE - 1,
-  );
 
   if (error) {
-    console.log("Error fetching the bookmarks:", error);
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 py-8">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center py-12">
-            <p className="text-red-500 text-lg">
-              Error loading bookmarks. Please try again later.
-            </p>
+            <p className="text-red-500 text-lg">{error}</p>
           </div>
         </div>
       </div>
@@ -74,9 +90,33 @@ export default async function BookmarksPage({
 
   return (
     <BookmarksClient
-      initialBookmarks={data ?? []}
-      totalCount={count ?? 0}
+      initialBookmarks={bookmarks}
+      totalCount={totalCount}
       initialPage={page}
     />
   );
+}
+
+function BookmarksContent() {
+  return (
+    <AuthGuard>
+      <Suspense
+        fallback={
+          <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 py-8">
+            <div className="max-w-7xl mx-auto px-4">
+              <div className="text-center py-12">
+                <p className="text-gray-500">Loading bookmarks...</p>
+              </div>
+            </div>
+          </div>
+        }
+      >
+        <BookmarksContentInner />
+      </Suspense>
+    </AuthGuard>
+  );
+}
+
+export default function BookmarksPage() {
+  return <BookmarksContent />;
 }

@@ -1,38 +1,52 @@
+"use client";
+
 import CompaniesClient from "./companies-client";
 import { Suspense } from "react";
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
+import AuthGuard from "@/components/AuthGuard";
+import { supabaseClient } from "@/lib/supabase-client";
+import { useEffect, useState } from "react";
 
-export const revalidate = 60;
-export const dynamic = "force-dynamic";
+export default function CompaniesPage() {
+  const [initialCompanies, setInitialCompanies] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-export default async function CompaniesPage() {
-  const cookieStore = cookies();
-  const supabase = createServerComponentClient({ cookies: () => cookieStore });
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      try {
+        const { data, error: fetchError } = await supabaseClient
+          .from("companies")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(100);
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+        if (fetchError) {
+          setError(fetchError.message);
+          return;
+        }
 
-  if (!user) {
-    redirect("/login");
-  }
+        setInitialCompanies(data ?? []);
+      } catch (e) {
+        setError((e as Error).message);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const { data, error } = await supabase
-    .from("companies")
-    .select("*")
-    .order("created_at", { ascending: false })
-    .limit(100);
-
-  if (error) {
-    console.error(error);
-    return <div>Failed to load companies</div>;
-  }
+    fetchCompanies();
+  }, []);
 
   return (
-    <Suspense fallback={<></>}>
-      <CompaniesClient initialCompanies={data ?? []} />
-    </Suspense>
+    <AuthGuard>
+      {loading ? (
+        <div className="p-6">Loading companies...</div>
+      ) : error ? (
+        <div className="p-6 text-red-600">Error: {error}</div>
+      ) : (
+        <Suspense fallback={<div className="p-6">Loading...</div>}>
+          <CompaniesClient initialCompanies={initialCompanies} />
+        </Suspense>
+      )}
+    </AuthGuard>
   );
 }

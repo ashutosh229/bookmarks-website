@@ -98,6 +98,7 @@ function BookmarksContentInner() {
       initialBookmarks={bookmarks}
       totalCount={totalCount}
       initialPage={page}
+      refetchBookmarks={fetchBookmarks}
     />
   );
 }

@@ -35,10 +35,12 @@ export default function BookmarksClient({
   initialBookmarks,
   totalCount,
   initialPage,
+  refetchBookmarks,
 }: {
   initialBookmarks: Bookmark[];
   totalCount: number;
   initialPage: number;
+  refetchBookmarks: () => Promise<void>;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -108,7 +110,7 @@ export default function BookmarksClient({
     }
 
     // Refresh the page to get updated data from server
-    router.refresh();
+    await refetchBookmarks();
     toast.success("Bookmark added successfully");
 
     setNewBookmark({
@@ -134,7 +136,7 @@ export default function BookmarksClient({
     }
 
     // Refresh the page to get updated data from server
-    router.refresh();
+    await refetchBookmarks();
     toast.success("Bookmark deleted successfully");
   };
 
@@ -161,7 +163,7 @@ export default function BookmarksClient({
     }
 
     // Refresh the page to get updated data from server
-    router.refresh();
+    await refetchBookmarks();
     toast.success("Bookmark updated successfully");
     setEditingBookmark(null);
     setIsEditDialogOpen(false);

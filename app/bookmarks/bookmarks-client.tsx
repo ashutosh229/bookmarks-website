@@ -55,7 +55,7 @@ export default function BookmarksClient({
     url: string;
     title: string;
     keywords: string[];
-    keywordInput: string; // for typing
+    keywordInput: string;
     comment: string;
     status: "not_visited" | "visited" | "revisit";
   }>({
@@ -102,9 +102,17 @@ export default function BookmarksClient({
       .map((k) => k.trim().toLowerCase())
       .filter(Boolean);
 
+    const { keywordInput, ...rest } = newBookmark;
+
     const { data, error } = await supabaseClient
       .from("bookmarks")
-      .insert([{ ...newBookmark, keywords, user_id: user?.id }])
+      .insert([
+        {
+          ...rest,
+          keywords,
+          user_id: user?.id,
+        },
+      ])
       .select()
       .single();
 

@@ -1,5 +1,14 @@
 "use client";
 
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
+import { useRouter, useSearchParams } from "next/navigation";
+
+import { supabaseClient } from "@/lib/supabase-client";
+import { Bookmark } from "@/lib/types";
+import { useAuth } from "@/app/providers";
+import BookmarkCard from "./bookmark-card";
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -19,15 +28,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { supabaseClient } from "@/lib/supabase-client";
-import { Bookmark } from "@/lib/types";
 import { BookmarkPlus } from "lucide-react";
-import { useState, useEffect } from "react";
-import { useAuth } from "@/app/providers";
-import { toast } from "sonner";
-import BookmarkCard from "./bookmark-card";
-import { useRouter, useSearchParams } from "next/navigation";
 
 const PAGE_SIZE = 20;
 
@@ -47,20 +50,22 @@ export default function BookmarksClient({
   const { user } = useAuth() as any;
 
   const [bookmarks, setBookmarks] = useState(initialBookmarks);
+  const [editKeywordInput, setEditKeywordInput] = useState("");
   const [newBookmark, setNewBookmark] = useState<{
     url: string;
     title: string;
-    keywords: string;
+    keywords: string[];
+    keywordInput: string; // for typing
     comment: string;
     status: "not_visited" | "visited" | "revisit";
   }>({
     url: "",
     title: "",
-    keywords: "",
+    keywords: [],
+    keywordInput: "",
     comment: "",
     status: "not_visited",
   });
-
   const [editingBookmark, setEditingBookmark] = useState<Bookmark | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>(
     searchParams.get("status") || "all",
@@ -94,7 +99,6 @@ export default function BookmarksClient({
     }
 
     const keywords = newBookmark.keywords
-      .split(",")
       .map((k) => k.trim().toLowerCase())
       .filter(Boolean);
 
@@ -116,7 +120,8 @@ export default function BookmarksClient({
     setNewBookmark({
       url: "",
       title: "",
-      keywords: "",
+      keywords: [],
+      keywordInput: "",
       comment: "",
       status: "not_visited",
     });
@@ -239,18 +244,45 @@ export default function BookmarksClient({
                     />
                   </div>
                   <div>
-                    <Label htmlFor="keywords">Keywords (comma-separated)</Label>
-                    <Input
-                      id="keywords"
-                      value={newBookmark.keywords}
-                      onChange={(e) =>
-                        setNewBookmark({
-                          ...newBookmark,
-                          keywords: e.target.value,
-                        })
-                      }
-                      placeholder="tech, article, tutorial"
-                    />
+                    <div>
+                      <Label>Keywords</Label>
+
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {newBookmark.keywords.map((k) => (
+                          <Badge key={k} variant="secondary">
+                            {k}
+                          </Badge>
+                        ))}
+                      </div>
+
+                      <Input
+                        value={newBookmark.keywordInput}
+                        placeholder="Type keyword and press Enter"
+                        onChange={(e) =>
+                          setNewBookmark({
+                            ...newBookmark,
+                            keywordInput: e.target.value,
+                          })
+                        }
+                        onKeyDown={(e) => {
+                          if (e.key !== "Enter") return;
+                          e.preventDefault();
+
+                          const newKeyword = newBookmark.keywordInput
+                            .trim()
+                            .toLowerCase();
+                          if (!newKeyword) return;
+
+                          if (!newBookmark.keywords.includes(newKeyword)) {
+                            setNewBookmark((prev) => ({
+                              ...prev,
+                              keywords: [...prev.keywords, newKeyword].sort(),
+                              keywordInput: "",
+                            }));
+                          }
+                        }}
+                      />
+                    </div>
                   </div>
                   <div>
                     <Label htmlFor="comment">Comment</Label>
@@ -431,22 +463,61 @@ export default function BookmarksClient({
                 </div>
 
                 <div>
-                  <Label htmlFor="edit-keywords">
-                    Keywords (comma separated)
-                  </Label>
-                  <Input
-                    id="edit-keywords"
-                    value={editingBookmark.keywords.join(", ")}
-                    onChange={(e) =>
-                      setEditingBookmark({
-                        ...editingBookmark,
-                        keywords: e.target.value
-                          .split(",")
-                          .map((k) => k.trim().toLowerCase())
-                          .filter(Boolean),
-                      })
-                    }
-                  />
+                  <div>
+                    <Label>Keywords</Label>
+
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {editingBookmark.keywords.map((k) => (
+                        <Badge
+                          key={k}
+                          variant="secondary"
+                          className="flex items-center gap-1"
+                        >
+                          {k}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingBookmark({
+                                ...editingBookmark,
+                                keywords: editingBookmark.keywords.filter(
+                                  (kw) => kw !== k,
+                                ),
+                              });
+                            }}
+                          >
+                            ✕
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+
+                    <Input
+                      value={editKeywordInput}
+                      placeholder="Type keyword and press Enter"
+                      onChange={(e) => setEditKeywordInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key !== "Enter") return;
+                        e.preventDefault();
+
+                        const newKeyword = editKeywordInput
+                          .trim()
+                          .toLowerCase();
+                        if (!newKeyword) return;
+
+                        if (!editingBookmark.keywords.includes(newKeyword)) {
+                          setEditingBookmark((prev) => {
+                            if (!prev) return prev;
+                            return {
+                              ...prev,
+                              keywords: [...prev.keywords, newKeyword].sort(),
+                            };
+                          });
+                        }
+
+                        setEditKeywordInput("");
+                      }}
+                    />
+                  </div>
                 </div>
 
                 <div>

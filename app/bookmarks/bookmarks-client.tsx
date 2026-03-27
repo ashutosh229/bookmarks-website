@@ -31,7 +31,20 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { BookmarkPlus } from "lucide-react";
-import { useFormField } from "@/components/ui/form";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { Check } from "lucide-react";
 
 const PAGE_SIZE = 20;
 
@@ -78,6 +91,8 @@ export default function BookmarksClient({
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
   const [allKeywords, setAllKeywords] = useState<string[]>([]);
+  const [keywordSearch, setKeywordSearch] = useState("");
+  const [open, setOpen] = useState(false);
 
   // Read current page from URL
   const currentPage = Number(searchParams.get("page") || "0");
@@ -419,38 +434,87 @@ export default function BookmarksClient({
                   </Badge>
                 ))}
               </div>
-
-              <Select
-                onValueChange={(value) => {
-                  setSelectedKeywords((prev) => {
-                    if (value === "none") {
-                      return ["none"];
-                    }
-
-                    const cleaned = prev.filter((k) => k !== "none");
-
-                    if (cleaned.includes(value)) {
-                      return cleaned.filter((k) => k !== value);
-                    }
-
-                    return [...cleaned, value];
-                  });
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select keywords" />
-                </SelectTrigger>
-
-                <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
-
-                  {allKeywords.map((k) => (
-                    <SelectItem key={k} value={k}>
+              <div className="w-64">
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {selectedKeywords.map((k) => (
+                    <Badge
+                      key={k}
+                      variant="secondary"
+                      className="flex gap-1 items-center"
+                    >
                       {k}
-                    </SelectItem>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setSelectedKeywords((prev) =>
+                            prev.filter((kw) => kw !== k),
+                          )
+                        }
+                      >
+                        ✕
+                      </button>
+                    </Badge>
                   ))}
-                </SelectContent>
-              </Select>
+                </div>
+
+                <Popover open={open} onOpenChange={setOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between"
+                    >
+                      Select keywords
+                    </Button>
+                  </PopoverTrigger>
+
+                  <PopoverContent className="w-64 p-0">
+                    <Command>
+                      <CommandInput
+                        placeholder="Search keywords..."
+                        value={keywordSearch}
+                        onValueChange={setKeywordSearch}
+                      />
+
+                      <CommandList>
+                        <CommandEmpty>No keywords found</CommandEmpty>
+
+                        <CommandGroup>
+                          {allKeywords
+                            .filter((k) =>
+                              k
+                                .toLowerCase()
+                                .includes(keywordSearch.toLowerCase()),
+                            )
+                            .map((k) => {
+                              const isSelected = selectedKeywords.includes(k);
+
+                              return (
+                                <CommandItem
+                                  key={k}
+                                  onSelect={() => {
+                                    setSelectedKeywords((prev) => {
+                                      if (prev.includes(k)) {
+                                        return prev.filter((kw) => kw !== k);
+                                      }
+                                      return [...prev, k];
+                                    });
+                                  }}
+                                >
+                                  <Check
+                                    className={`mr-2 h-4 w-4 ${
+                                      isSelected ? "opacity-100" : "opacity-0"
+                                    }`}
+                                  />
+                                  {k}
+                                </CommandItem>
+                              );
+                            })}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              </div>
             </div>
           </div>
           <Button

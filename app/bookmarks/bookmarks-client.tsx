@@ -31,6 +31,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { BookmarkPlus } from "lucide-react";
+import { useFormField } from "@/components/ui/form";
 
 const PAGE_SIZE = 20;
 
@@ -76,14 +77,29 @@ export default function BookmarksClient({
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
+  const [allKeywords, setAllKeywords] = useState<string[]>([]);
 
   // Read current page from URL
   const currentPage = Number(searchParams.get("page") || "0");
+
+  const fetchKeywords = async () => {
+    const { data, error } = await supabaseClient.rpc("get_distinct_keywords");
+    if (error) {
+      toast.error("Error fetching keywords");
+      return;
+    }
+    setAllKeywords(data || []);
+  };
 
   // Sync bookmarks whenever server re-renders
   useEffect(() => {
     setBookmarks(initialBookmarks);
   }, [initialBookmarks]);
+
+  // Fetching all distinct keywords from database
+  useEffect(() => {
+    fetchKeywords();
+  }, []);
 
   // Sync filter states with URL params
   useEffect(() => {
@@ -124,6 +140,7 @@ export default function BookmarksClient({
 
     // Refresh the page to get updated data from server
     await refetchBookmarks();
+    await fetchKeywords();
     toast.success("Bookmark added successfully");
 
     setNewBookmark({
@@ -151,6 +168,7 @@ export default function BookmarksClient({
 
     // Refresh the page to get updated data from server
     await refetchBookmarks();
+    await fetchKeywords();
     toast.success("Bookmark deleted successfully");
   };
 
@@ -178,6 +196,7 @@ export default function BookmarksClient({
 
     // Refresh the page to get updated data from server
     await refetchBookmarks();
+    await fetchKeywords();
     toast.success("Bookmark updated successfully");
     setEditingBookmark(null);
     setIsEditDialogOpen(false);
@@ -425,9 +444,7 @@ export default function BookmarksClient({
                 <SelectContent>
                   <SelectItem value="none">None</SelectItem>
 
-                  {Array.from(
-                    new Set(bookmarks.flatMap((b) => b.keywords || [])),
-                  ).map((k) => (
+                  {allKeywords.map((k) => (
                     <SelectItem key={k} value={k}>
                       {k}
                     </SelectItem>

@@ -1,7 +1,5 @@
 "use client";
 
-// how words are fetched
-
 import BookmarksClient from "./bookmarks-client";
 import AuthGuard from "@/components/AuthGuard";
 import { supabaseClient } from "@/lib/supabase-client";

@@ -226,7 +226,9 @@ export default function BookmarksClient({
     const params = new URLSearchParams();
     if (status && status !== "all") params.set("status", status);
     if (keyword) params.set("q", keyword);
-    if (keywords.length > 0) {
+    if (keywords.includes("None")) {
+      params.set("keywords", "none");
+    } else if (keywords.length > 0) {
       params.set("keywords", keywords.join(","));
     }
     params.set("page", "0");
@@ -241,6 +243,8 @@ export default function BookmarksClient({
   };
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+
+  const keywordOptions = ["None", ...allKeywords];
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 py-8">
@@ -453,7 +457,7 @@ export default function BookmarksClient({
                     <CommandEmpty>No keywords found</CommandEmpty>
 
                     <CommandGroup>
-                      {allKeywords
+                      {keywordOptions
                         .filter((k) =>
                           k.toLowerCase().includes(keywordSearch.toLowerCase()),
                         )

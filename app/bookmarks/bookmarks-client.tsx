@@ -412,110 +412,80 @@ export default function BookmarksClient({
             />
           </div>
           <div className="w-64">
-            <div className="w-64">
-              <div className="flex flex-wrap gap-2 mb-2">
-                {selectedKeywords.map((k) => (
-                  <Badge
-                    key={k}
-                    variant="secondary"
-                    className="flex gap-1 items-center"
+            <div className="flex flex-wrap gap-2 mb-2">
+              {selectedKeywords.map((k) => (
+                <Badge
+                  key={k}
+                  variant="secondary"
+                  className="flex gap-1 items-center"
+                >
+                  {k}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSelectedKeywords((prev) =>
+                        prev.filter((kw) => kw !== k),
+                      )
+                    }
                   >
-                    {k}
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setSelectedKeywords((prev) =>
-                          prev.filter((kw) => kw !== k),
-                        )
-                      }
-                    >
-                      ✕
-                    </button>
-                  </Badge>
-                ))}
-              </div>
-              <div className="w-64">
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {selectedKeywords.map((k) => (
-                    <Badge
-                      key={k}
-                      variant="secondary"
-                      className="flex gap-1 items-center"
-                    >
-                      {k}
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setSelectedKeywords((prev) =>
-                            prev.filter((kw) => kw !== k),
-                          )
-                        }
-                      >
-                        ✕
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
-
-                <Popover open={open} onOpenChange={setOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-between"
-                    >
-                      Select keywords
-                    </Button>
-                  </PopoverTrigger>
-
-                  <PopoverContent className="w-64 p-0">
-                    <Command>
-                      <CommandInput
-                        placeholder="Search keywords..."
-                        value={keywordSearch}
-                        onValueChange={setKeywordSearch}
-                      />
-
-                      <CommandList>
-                        <CommandEmpty>No keywords found</CommandEmpty>
-
-                        <CommandGroup>
-                          {allKeywords
-                            .filter((k) =>
-                              k
-                                .toLowerCase()
-                                .includes(keywordSearch.toLowerCase()),
-                            )
-                            .map((k) => {
-                              const isSelected = selectedKeywords.includes(k);
-
-                              return (
-                                <CommandItem
-                                  key={k}
-                                  onSelect={() => {
-                                    setSelectedKeywords((prev) => {
-                                      if (prev.includes(k)) {
-                                        return prev.filter((kw) => kw !== k);
-                                      }
-                                      return [...prev, k];
-                                    });
-                                  }}
-                                >
-                                  <Check
-                                    className={`mr-2 h-4 w-4 ${
-                                      isSelected ? "opacity-100" : "opacity-0"
-                                    }`}
-                                  />
-                                  {k}
-                                </CommandItem>
-                              );
-                            })}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-              </div>
+                    ✕
+                  </button>
+                </Badge>
+              ))}
             </div>
+
+            <Popover open={open} onOpenChange={setOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full justify-between">
+                  Select keywords
+                </Button>
+              </PopoverTrigger>
+
+              <PopoverContent className="w-64 p-0">
+                <Command>
+                  <CommandInput
+                    placeholder="Search keywords..."
+                    value={keywordSearch}
+                    onValueChange={setKeywordSearch}
+                  />
+
+                  <CommandList>
+                    <CommandEmpty>No keywords found</CommandEmpty>
+
+                    <CommandGroup>
+                      {allKeywords
+                        .filter((k) =>
+                          k.toLowerCase().includes(keywordSearch.toLowerCase()),
+                        )
+                        .map((k) => {
+                          const isSelected = selectedKeywords.includes(k);
+
+                          return (
+                            <CommandItem
+                              key={k}
+                              onSelect={() => {
+                                setSelectedKeywords((prev) => {
+                                  if (prev.includes(k)) {
+                                    return prev.filter((kw) => kw !== k);
+                                  }
+                                  return [...prev, k];
+                                });
+                              }}
+                            >
+                              <Check
+                                className={`mr-2 h-4 w-4 ${
+                                  isSelected ? "opacity-100" : "opacity-0"
+                                }`}
+                              />
+                              {k}
+                            </CommandItem>
+                          );
+                        })}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
           <Button
             onClick={() =>

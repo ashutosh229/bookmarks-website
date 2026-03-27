@@ -1,5 +1,7 @@
 "use client";
 
+// how words are fetched
+
 import BookmarksClient from "./bookmarks-client";
 import AuthGuard from "@/components/AuthGuard";
 import { supabaseClient } from "@/lib/supabase-client";
@@ -20,10 +22,12 @@ function BookmarksContentInner() {
   const page = Number(searchParams.get("page") ?? "0");
   const status = searchParams.get("status") ?? "all";
   const q = searchParams.get("q") ?? "";
+  const keywordsParam = searchParams.get("keywords") ?? "";
+  const keywords = keywordsParam ? keywordsParam.split(",") : [];
 
   useEffect(() => {
     fetchBookmarks();
-  }, [page, status, q]);
+  }, [page, status, q, keywordsParam]);
 
   async function fetchBookmarks() {
     try {
@@ -32,7 +36,10 @@ function BookmarksContentInner() {
 
       const offset = page * PAGE_SIZE;
 
-      if (!user) return;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
 
       let query = supabaseClient
         .from("bookmarks")
@@ -48,14 +55,18 @@ function BookmarksContentInner() {
       if (q && q.trim() !== "") {
         const searchTerm = q.trim();
         const safeTerm = searchTerm.replace(/,/g, "");
-        const lowerKeyword = safeTerm.toLowerCase();
 
-        const searchFilter =
-          `title.ilike.%${safeTerm}%` +
-          `,comment.ilike.%${safeTerm}%` +
-          `,keywords.cs.{${lowerKeyword}}`;
+        const searchFilter = `title.ilike.%${safeTerm}%,comment.ilike.%${safeTerm}%`;
 
         query = query.or(searchFilter);
+      }
+
+      if (keywords.length > 0) {
+        if (keywords.includes("none")) {
+          query = query.or("keywords.eq.{},keywords.is.null");
+        } else {
+          query = query.contains("keywords", keywords);
+        }
       }
 
       // ✅ Apply pagination

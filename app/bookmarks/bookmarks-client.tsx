@@ -75,6 +75,7 @@ export default function BookmarksClient({
   );
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
 
   // Read current page from URL
   const currentPage = Number(searchParams.get("page") || "0");
@@ -183,11 +184,18 @@ export default function BookmarksClient({
   };
 
   // Apply filters
-  const applyFilters = (status: string, keyword: string) => {
+  const applyFilters = (
+    status: string,
+    keyword: string,
+    keywords: string[],
+  ) => {
     const params = new URLSearchParams();
     if (status && status !== "all") params.set("status", status);
     if (keyword) params.set("q", keyword);
-    params.set("page", "0"); // reset page on filter change
+    if (keywords.length > 0) {
+      params.set("keywords", keywords.join(","));
+    }
+    params.set("page", "0");
     router.push(`/bookmarks?${params.toString()}`);
   };
 
@@ -341,7 +349,7 @@ export default function BookmarksClient({
               value={filterStatus}
               onValueChange={(value) => {
                 setFilterStatus(value);
-                applyFilters(value, filterKeyword);
+                applyFilters(value, filterKeyword, selectedKeywords);
               }}
             >
               <SelectTrigger>
@@ -364,13 +372,74 @@ export default function BookmarksClient({
               }}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
-                  applyFilters(filterStatus, filterKeyword);
+                  applyFilters(filterStatus, filterKeyword, selectedKeywords);
                 }
               }}
             />
           </div>
+          <div className="w-64">
+            <div className="w-64">
+              <div className="flex flex-wrap gap-2 mb-2">
+                {selectedKeywords.map((k) => (
+                  <Badge
+                    key={k}
+                    variant="secondary"
+                    className="flex gap-1 items-center"
+                  >
+                    {k}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setSelectedKeywords((prev) =>
+                          prev.filter((kw) => kw !== k),
+                        )
+                      }
+                    >
+                      ✕
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+
+              <Select
+                onValueChange={(value) => {
+                  setSelectedKeywords((prev) => {
+                    if (value === "none") {
+                      return ["none"];
+                    }
+
+                    const cleaned = prev.filter((k) => k !== "none");
+
+                    if (cleaned.includes(value)) {
+                      return cleaned.filter((k) => k !== value);
+                    }
+
+                    return [...cleaned, value];
+                  });
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select keywords" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+
+                  {Array.from(
+                    new Set(bookmarks.flatMap((b) => b.keywords || [])),
+                  ).map((k) => (
+                    <SelectItem key={k} value={k}>
+                      {k}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
           <Button
-            onClick={() => applyFilters(filterStatus, filterKeyword)}
+            onClick={() =>
+              applyFilters(filterStatus, filterKeyword, selectedKeywords)
+            }
             variant="secondary"
           >
             Apply
